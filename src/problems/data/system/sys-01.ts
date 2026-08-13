@@ -5,6 +5,7 @@ export const sys01 = {
   category: "system",
   title: "디스크 사용률 보고",
   difficulty: 1,
+  tags: ["df -h", "grep"],
   scenario:
     "모니터링에서 /mnt/data 파티션의 용량 경고가 왔습니다. 정확한 사용률을 확인해서 " +
     "보고 파일로 남겨야 합니다.\n" +

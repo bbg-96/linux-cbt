@@ -5,6 +5,7 @@ export const perm03 = {
   category: "permissions",
   title: "파일 소유권 인수인계",
   difficulty: 2,
+  tags: ["chown", "chgrp"],
   scenario:
     "동료 worker 계정에게 업무를 인수인계하게 되었습니다. 인수인계 문서 handover.txt 를 " +
     "worker 가 소유하도록 넘겨주고, 권한도 정리해야 합니다.\n" +

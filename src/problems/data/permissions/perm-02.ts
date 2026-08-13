@@ -5,6 +5,7 @@ export const perm02 = {
   category: "permissions",
   title: "민감 파일 접근 제한",
   difficulty: 1,
+  tags: ["chmod", "600/644"],
   scenario:
     "보안 점검에서 지적을 받았습니다. DB 비밀번호가 들어 있는 secret.txt 가 " +
     "모든 사용자에게 읽기·쓰기(666)로 열려 있습니다.\n" +

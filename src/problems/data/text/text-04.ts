@@ -5,6 +5,7 @@ export const text04 = {
   category: "text",
   title: "awk로 컬럼 뽑기",
   difficulty: 1,
+  tags: ["awk", "$1"],
   scenario:
     "웹 서버 접근 로그 access.log 가 있습니다. 각 줄은 공백으로 구분된 " +
     "'IP 메서드 경로 상태코드 바이트' 형식입니다.\n" +

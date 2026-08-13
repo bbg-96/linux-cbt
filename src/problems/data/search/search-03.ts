@@ -5,6 +5,7 @@ export const search03 = {
   category: "search",
   title: "ripgrep으로 TODO 사냥",
   difficulty: 2,
+  tags: ["rg", "-l", "-c"],
   scenario:
     "코드 리뷰 전에 소스 트리에 남아 있는 TODO 주석을 정리하기로 했습니다.\n" +
     "이럴 때는 grep -r 보다 빠르고 출력이 깔끔한 ripgrep(rg)이 편합니다. " +

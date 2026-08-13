@@ -5,6 +5,7 @@ export const text02 = {
   category: "text",
   title: "중복 제거된 사용자 명단",
   difficulty: 2,
+  tags: ["sort", "uniq", "파이프"],
   scenario:
     "여러 이벤트 참가 신청서를 합쳐 놓은 users.txt 가 있습니다. 같은 사람이 여러 번 " +
     "신청해서 중복이 많고 순서도 뒤죽박죽입니다.\n" +

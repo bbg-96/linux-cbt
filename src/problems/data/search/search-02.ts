@@ -5,6 +5,7 @@ export const search02 = {
   category: "search",
   title: "크기와 날짜로 파일 정리",
   difficulty: 2,
+  tags: ["find", "-size", "-mtime", "-exec"],
   scenario:
     "data 디렉터리가 용량 경고를 울리고 있습니다. 정리 규칙은 두 가지입니다:\n" +
     "큰 파일(100KB 초과)은 archive 디렉터리로 옮기고, " +

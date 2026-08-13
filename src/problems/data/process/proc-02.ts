@@ -5,6 +5,7 @@ export const proc02 = {
   category: "process",
   title: "백그라운드 실행과 로그 남기기",
   difficulty: 2,
+  tags: ["&", "2>&1", "백그라운드"],
   scenario:
     "오래 걸리는 작업 스크립트 long_task.sh 를 실행해야 합니다. 그런데 그냥 실행하면 " +
     "터미널이 묶여서 다른 일을 못 합니다.\n" +

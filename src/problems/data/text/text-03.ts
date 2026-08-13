@@ -5,6 +5,7 @@ export const text03 = {
   category: "text",
   title: "설정 값 일괄 치환",
   difficulty: 2,
+  tags: ["sed -i", "s/치환/g"],
   scenario:
     "서비스 포트를 8080에서 9090으로 옮기기로 했습니다. 설정 파일 config.ini 에는 " +
     "8080이 여러 곳에 등장합니다.\n" +

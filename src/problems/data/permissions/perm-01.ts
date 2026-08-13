@@ -5,6 +5,7 @@ export const perm01 = {
   category: "permissions",
   title: "백업 스크립트 실행 권한",
   difficulty: 1,
+  tags: ["chmod", "ls -l"],
   scenario:
     "당신은 서버 관리자입니다. 새로 배포된 백업 스크립트가 예약 작업에서 실행되지 않고 " +
     "'Permission denied' 오류만 남기고 있습니다.\n" +

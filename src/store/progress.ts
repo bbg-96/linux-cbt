@@ -10,6 +10,8 @@ export interface ProblemProgress {
 interface ProgressState {
   version: 1;
   problems: Record<string, ProblemProgress>;
+  /** 마지막으로 방문한 문제 — 대시보드의 '이어서 풀기' 근거 */
+  lastProblemId?: string;
 }
 
 const KEY = "linux-cbt:v1";
@@ -59,9 +61,15 @@ export function recordHint(problemId: string): void {
   update(problemId, (p) => ({ ...p, hintsUsed: p.hintsUsed + 1 }));
 }
 
+export function recordVisit(problemId: string): void {
+  if (progressStore.get().lastProblemId === problemId) return;
+  progressStore.set({ lastProblemId: problemId });
+  persist();
+}
+
 /** 진도 전체 초기화 (개발 회귀 하네스가 남긴 기록 정리용). */
 export function resetProgress(): void {
-  progressStore.set({ problems: {} });
+  progressStore.set({ problems: {}, lastProblemId: undefined });
   try {
     localStorage.removeItem(KEY);
   } catch {

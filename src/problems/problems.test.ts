@@ -35,6 +35,13 @@ describe("문제 스키마 제약", () => {
     }
   });
 
+  it("모든 문제에 카드 표시용 tags가 있다 (1~4개)", () => {
+    for (const p of problems) {
+      expect(p.tags?.length, p.id).toBeTruthy();
+      expect(p.tags!.length, p.id).toBeLessThanOrEqual(4);
+    }
+  });
+
   it("vms:2 문제의 setup/setupB는 MAC_REFRESH(rmmod virtio_net)를 포함한다", () => {
     for (const p of problems) {
       if ((p.vms ?? 1) === 2) {

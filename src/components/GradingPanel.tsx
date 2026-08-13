@@ -1,12 +1,17 @@
+import { useNavigate } from "react-router-dom";
 import { useStore } from "../lib/store";
 import { problemSession } from "../engine/session";
+import { problems } from "../problems";
 import type { Problem } from "../engine/types";
 import { CheckResultRow } from "./CheckResultRow";
 
 export function GradingPanel({ problem }: { problem: Problem }) {
+  const navigate = useNavigate();
   const session = useStore(problemSession.store);
   const active = session.phase === "ready" || session.phase === "solved";
   const grading = session.phase === "grading";
+  const globalIdx = problems.findIndex((p) => p.id === problem.id);
+  const nextProblem = globalIdx >= 0 && globalIdx < problems.length - 1 ? problems[globalIdx + 1] : null;
 
   return (
     <section className="panel">
@@ -29,7 +34,18 @@ export function GradingPanel({ problem }: { problem: Problem }) {
       </div>
 
       {session.phase === "solved" && (
-        <p className="grade-banner grade-pass">🎉 모든 검사를 통과했습니다!</p>
+        <div className="grade-banner grade-pass grade-pass-row">
+          <span>🎉 모든 검사를 통과했습니다!</span>
+          {nextProblem ? (
+            <button className="btn btn-sm" onClick={() => navigate(`/p/${nextProblem.id}`)}>
+              다음 문제 →
+            </button>
+          ) : (
+            <button className="btn btn-sm" onClick={() => navigate("/")}>
+              대시보드로 →
+            </button>
+          )}
+        </div>
       )}
       {session.phase === "ready" && session.report && !session.report.passed && (
         <p className="grade-banner grade-fail">

@@ -6,6 +6,7 @@ export const net06 = {
   category: "network",
   title: "nmcli로 고정 IP 프로필 전환",
   difficulty: 3,
+  tags: ["nmcli", "connection"],
   scenario:
     "RHEL·CentOS 계열 서버는 NetworkManager 가 네트워크를 관리하고, 관리 도구는 nmcli 입니다.\n" +
     "이 서버에는 NetworkManager 가 켜져 있고 eth0 는 자동(DHCP) 연결로 붙어 있습니다. " +

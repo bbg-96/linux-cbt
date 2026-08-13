@@ -6,6 +6,7 @@ export const net04 = {
   category: "network",
   title: "iptables로 트래픽 차단하기",
   difficulty: 3,
+  tags: ["iptables", "DROP"],
   scenario:
     "방화벽 훈련입니다. iptables 규칙이 실제 트래픽을 어떻게 차단하는지 " +
     "루프백(lo) 인터페이스에서 안전하게 체험해 봅니다.\n" +

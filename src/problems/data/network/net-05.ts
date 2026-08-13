@@ -6,6 +6,7 @@ export const net05 = {
   category: "network",
   title: "tcpdump 실시간 패킷 관찰",
   difficulty: 3,
+  tags: ["tcpdump", "ping"],
   terminals: 2,
   scenario:
     "실무에서 패킷 확인은 창 두 개로 합니다 — 한쪽에서 트래픽을 만들고, " +

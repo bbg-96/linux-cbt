@@ -61,6 +61,8 @@ export interface Problem {
   category: CategoryId;
   title: string;
   difficulty: 1 | 2 | 3;
+  /** 문제 카드에 표시되는 핵심 명령어 태그 (1~4개) */
+  tags?: string[];
   /** 메인 VM의 터미널 수 (2면 ttyS1 터미널②가 추가 표시; vms:2와 동시 사용 불가) */
   terminals?: 1 | 2;
   /** 2면 Host B(두 번째 VM)가 추가되고 L2 브리지로 연결된다 */

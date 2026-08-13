@@ -364,13 +364,272 @@ body {
   border-color: var(--green);
 }
 
+/* ---- 대시보드 ---- */
+
+.dash-page {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 28px 20px;
+}
+
+.dash-hero {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px 28px;
+  margin-bottom: 24px;
+}
+
+.dash-hero-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.dash-hero-info h1 {
+  margin: 0 0 6px;
+  font-size: 20px;
+}
+
+.dash-count {
+  margin: 0 0 10px;
+  font-size: 15px;
+}
+
+.dash-count strong {
+  font-size: 28px;
+  color: var(--accent);
+}
+
+.dash-attempted {
+  margin: 10px 0 0;
+  font-size: 13px;
+}
+
+.dash-hero-action {
+  flex: 0 0 auto;
+}
+
+.btn-lg {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 14px 22px;
+  font-size: 16px;
+  border-radius: 10px;
+}
+
+.btn-sub {
+  font-size: 12px;
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+.dash-complete {
+  color: var(--green);
+  font-weight: 600;
+}
+
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.cat-card {
+  display: block;
+  padding: 18px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  text-decoration: none;
+  color: var(--text);
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+.cat-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.cat-card h2 {
+  margin: 10px 0 4px;
+  font-size: 16px;
+}
+
+.cat-card p {
+  margin: 0 0 14px;
+  font-size: 13px;
+  min-height: 2.6em;
+}
+
+.cat-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cat-icon {
+  font-size: 26px;
+}
+
+.cat-icon-lg {
+  font-size: 40px;
+}
+
+.cat-check {
+  font-size: 12px;
+  color: var(--green);
+  border: 1px solid var(--green);
+  border-radius: 999px;
+  padding: 1px 10px;
+}
+
+.cat-done {
+  border-color: rgba(63, 185, 80, 0.55);
+}
+
+.cat-card-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cat-card-foot .pbar {
+  flex: 1;
+}
+
+.cat-count {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.pbar {
+  height: 6px;
+  background: var(--bg-raised);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.pbar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 999px;
+  transition: width 0.3s;
+}
+
+.pbar-done {
+  background: var(--green);
+}
+
+/* ---- 카테고리 페이지 ---- */
+
+.cat-page-head {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  margin: 14px 0 18px;
+}
+
+.cat-page-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.cat-page-info h1 {
+  margin: 0 0 2px;
+  font-size: 22px;
+}
+
+.cat-page-info p {
+  margin: 0 0 8px;
+}
+
+.cat-page-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 420px;
+}
+
+.cat-page-progress .pbar {
+  flex: 1;
+}
+
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.tag {
+  font-size: 11px;
+  font-family: "Cascadia Mono", Consolas, monospace;
+  color: var(--text-muted);
+  background: var(--bg-raised);
+  border-radius: 5px;
+  padding: 1px 7px;
+}
+
+.tag-mode {
+  color: var(--accent);
+  background: rgba(88, 166, 255, 0.12);
+}
+
+.card-solved {
+  border-color: rgba(63, 185, 80, 0.45);
+}
+
 /* ---- 풀이 화면 ---- */
 
 .solve-page {
   display: flex;
-  gap: 16px;
+  flex-direction: column;
   height: 100%;
-  padding: 16px 20px 20px;
+  padding: 12px 20px 20px;
+  gap: 12px;
+}
+
+.solve-topbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.topbar-title {
+  font-weight: 600;
+  font-size: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.topbar-actions {
+  display: flex;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.solve-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: 16px;
+}
+
+.grade-pass-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .solve-left {
