@@ -174,11 +174,16 @@ export class SerialChannel {
    * 남는다는 성질을 신호로 삼으면 타이밍과 무관하게 확정적으로 판정할 수 있다.
    * (이걸 흘려보내지 않고 게이트를 열면 그 프롬프트 + 우리가 보내는 개행의 프롬프트가
    *  겹쳐 명령 시작줄이 두 줄로 보인다.)
+   *
+   * busybox 라인 에디터는 프롬프트 뒤에 ESC[6n(커서 위치 질의)을, 컬러 PS1은 SGR
+   * 코드를 붙이므로 CSI 시퀀스를 걷어낸 뒤 매칭해야 한다 — 안 걷어내면 영원히
+   * 매칭되지 않아 매번 타임아웃으로만 동작한다(실측으로 확인).
    */
   async waitPrompt(timeoutMs = 3000): Promise<boolean> {
     const start = Date.now();
     while (Date.now() - start < timeoutMs) {
-      if (/[#$%>]\s*$/.test(this.assembler.getPartial())) return true;
+      const tail = this.assembler.getPartial().replace(/\x1b\[[0-9;?]*[A-Za-z]/g, "");
+      if (/[#$%>]\s*$/.test(tail)) return true;
       await sleep(20);
     }
     return false; // 타임아웃이어도 진행 — 최악의 경우 프롬프트가 한 줄 더 보일 뿐

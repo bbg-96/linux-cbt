@@ -14,18 +14,36 @@ export class TerminalInstance {
   private opened = false;
 
   constructor(channel: SerialChannel) {
+    // Windows Terminal 'Campbell' 팔레트 — 실제 콘솔과 같은 색감.
+    // blue만 원본(#0037da)이 검정 배경에서 안 읽혀 브라이트 값으로 올렸다.
     this.term = new Terminal({
       fontSize: 14,
       fontFamily: "'Cascadia Mono', Consolas, 'Courier New', monospace",
       cursorBlink: true,
+      cursorStyle: "block",
       scrollback: 4000,
       theme: {
-        background: "#0d1117",
-        foreground: "#d4dae2",
-        cursor: "#58a6ff",
+        background: "#0c0c0c",
+        foreground: "#cccccc",
+        cursor: "#ffffff",
+        cursorAccent: "#0c0c0c",
         selectionBackground: "#264f78",
-        black: "#484f58",
-        brightBlack: "#6e7681",
+        black: "#0c0c0c",
+        red: "#c50f1f",
+        green: "#13a10e",
+        yellow: "#c19c00",
+        blue: "#3b78ff",
+        magenta: "#881798",
+        cyan: "#3a96dd",
+        white: "#cccccc",
+        brightBlack: "#767676",
+        brightRed: "#e74856",
+        brightGreen: "#16c60c",
+        brightYellow: "#f9f1a5",
+        brightBlue: "#3b78ff",
+        brightMagenta: "#b4009e",
+        brightCyan: "#61d6d6",
+        brightWhite: "#f2f2f2",
       },
     });
     this.term.loadAddon(this.fit);
@@ -70,6 +88,7 @@ export const terminals: Record<ChannelId, TerminalInstance> = {
   a0: new TerminalInstance(serialChannels.a0),
   a1: new TerminalInstance(serialChannels.a1),
   b0: new TerminalInstance(serialChannels.b0),
+  b1: new TerminalInstance(serialChannels.b1),
 };
 
 /** 호환 별칭 — 메인 터미널(①). */

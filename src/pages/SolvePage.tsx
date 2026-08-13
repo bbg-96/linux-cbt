@@ -7,7 +7,8 @@ import { MOBILE_QUERY, useMediaQuery } from "../lib/useMediaQuery";
 import { vmService } from "../vm/vmService";
 import { problemSession } from "../engine/session";
 import { recordVisit } from "../store/progress";
-import { TerminalPanel } from "../terminal/TerminalPanel";
+import { TerminalWorkspace } from "../terminal/TerminalWorkspace";
+import { termWorkspace } from "../terminal/workspace";
 import { BootOverlay } from "../components/BootOverlay";
 import { ScenarioPanel } from "../components/ScenarioPanel";
 import { GradingPanel } from "../components/GradingPanel";
@@ -27,6 +28,11 @@ export function SolvePage() {
   useEffect(() => {
     if (problem) recordVisit(problem.id);
   }, [problem?.id]);
+
+  // 문제 진입·VM 재시작 시 서버 목록/기본 세션 구성 (시딩 effect보다 먼저 선언되어야 함)
+  useEffect(() => {
+    if (problem) termWorkspace.configureProblem(problem);
+  }, [problem?.id, vm.generation, bVm.generation]);
 
   useEffect(() => {
     if (!problem || vm.phase !== "ready") return;
@@ -64,8 +70,6 @@ export function SolvePage() {
   const prev = idx > 0 ? siblings[idx - 1] : null;
   const next = idx >= 0 && idx < siblings.length - 1 ? siblings[idx + 1] : null;
 
-  const twoTerms = (problem.terminals ?? 1) === 2;
-  const twoVms = (problem.vms ?? 1) === 2;
   const locked =
     vm.phase !== "ready" || session.phase === "seeding" || session.phase === "grading" || session.phase === "error";
   const gradeActive = session.phase === "ready" || session.phase === "solved";
@@ -116,29 +120,12 @@ export function SolvePage() {
 
   const terminalPane = (
     <div className="solve-right">
-      {twoTerms ? (
-        <div className="term-stack">
-          <TerminalPanel channel="a0" title="터미널 ① — 명령 실행" locked={locked} overlay={overlay} />
-          <TerminalPanel channel="a1" title="터미널 ② — 실시간 관찰" locked={locked} overlay={overlay} />
-        </div>
-      ) : twoVms ? (
-        <div className="term-stack">
-          <TerminalPanel channel="a0" title="Host A" locked={locked} overlay={overlay} />
-          <TerminalPanel
-            channel="b0"
-            title="Host B"
-            titleExtra={
-              <button className="btn-link" onClick={() => void vmService.restartB()}>
-                VM B 재시작
-              </button>
-            }
-            locked={locked || bVm.phase !== "ready"}
-            overlay={bOverlay}
-          />
-        </div>
-      ) : (
-        <TerminalPanel locked={locked} overlay={overlay} />
-      )}
+      <TerminalWorkspace
+        lockedA={locked}
+        overlayA={overlay}
+        lockedB={locked || bVm.phase !== "ready"}
+        overlayB={bOverlay}
+      />
     </div>
   );
 

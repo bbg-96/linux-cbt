@@ -1,11 +1,23 @@
 import { createStore, type Store } from "../lib/store";
 import { serialChannels } from "../vm/serialBus";
 import { terminals } from "../terminal/terminalService";
+import { termWorkspace } from "../terminal/workspace";
 import { vmService } from "../vm/vmService";
 import { disposeBridge, installBridge, muteRelay, unmuteRelay } from "../vm/netBridge";
 import { gradeProblem } from "./grader";
 import { recordGrade } from "../store/progress";
+import { PS1_INIT } from "../vm/shellInit";
 import { DEFAULT_WORKDIR, type GradeReport, type Problem } from "./types";
+
+/** 복제 세션 채널 — 채점·시딩은 프롤로그를 보내지 않고 입력만 잠갔다 푼다 */
+const DUP_CHANNELS = ["a1", "b1"] as const;
+
+/** 시딩·채점 동안 입력을 잠가야 하는 열린 복제 세션 목록 (twoTerms의 a1은 항상 포함) */
+function lockedDupChannels(twoTerms: boolean): ("a1" | "b1")[] {
+  const chs: ("a1" | "b1")[] = DUP_CHANNELS.filter((c) => termWorkspace.hasSession(c));
+  if (twoTerms && !chs.includes("a1")) chs.push("a1");
+  return chs;
+}
 
 export type SessionPhase = "idle" | "seeding" | "ready" | "grading" | "solved" | "error";
 
@@ -63,7 +75,9 @@ class ProblemSession {
     const chB = serialChannels.b0;
     this.store.set({ phase: "seeding", problemId: problem.id, report: null, error: null });
     chA.setGates({ display: false, input: false });
-    if (twoTerms) chT2.setGates({ input: false });
+    // 열린 복제 세션은 입력만 잠근다 (표시는 유지 — 사용자가 켜 둔 관찰 화면 보존)
+    const dupChs = lockedDupChannels(twoTerms);
+    for (const c of dupChs) serialChannels[c].setGates({ input: false });
     try {
       // ── 모드 전환 단일 관문 ─────────────────────────────────────────
       if (vms === 2) {
@@ -104,15 +118,15 @@ class ProblemSession {
         }
       }
 
-      // ── 터미널② (a1) ──────────────────────────────────────────────
+      // ── 세션② (a1) — terminals:2 문제는 복제 즉시 열리도록 미리 준비 ──
       if (twoTerms) {
-        if (!(await vmService.ensureA1())) throw new Error("터미널 ②를 준비하지 못했습니다.");
+        if (!(await vmService.ensureA1())) throw new Error("세션 ②를 준비하지 못했습니다.");
         chT2.setGates({ display: false });
-        if (!(await chT2.prologue())) throw new Error("터미널 ② 셸이 응답하지 않습니다.");
+        if (!(await chT2.prologue())) throw new Error("세션 ② 셸이 응답하지 않습니다.");
         await sleep(150); // 분할 레이아웃 fit 안정화 대기
         const sz = terminals.a1.getSize();
         await chT2.runTransaction(
-          `export TERM=vt100; stty rows ${Math.max(sz.rows, 8)} cols ${Math.max(sz.cols, 40)}`,
+          `export TERM=vt100; stty rows ${Math.max(sz.rows, 8)} cols ${Math.max(sz.cols, 40)}; ${PS1_INIT}`,
           { timeoutMs: 4000 },
         );
         await chT2.runTransaction(`cd ${workdir}`, { timeoutMs: 4000 });
@@ -154,9 +168,11 @@ class ProblemSession {
       chA.sendRaw("\n");
       if (twoTerms) {
         terminals.a1.resetScreen();
-        terminals.a1.writeDivider("터미널 ② — 같은 서버의 두 번째 셸");
+        terminals.a1.writeDivider("세션 ② — 같은 서버의 두 번째 셸");
         chT2.setGates({ display: true, input: true });
         chT2.sendRaw("\n");
+        // 복제 버튼으로 열 때 재준비(prologue)하지 않도록 준비 완료를 기록
+        termWorkspace.notePrepared("a1");
       }
       if (vms === 2) {
         terminals.b0.resetScreen();
@@ -164,11 +180,13 @@ class ProblemSession {
         chB.setGates({ display: true, input: true });
         chB.sendRaw("\n");
       }
+      for (const c of dupChs) serialChannels[c].setGates({ input: true });
       this.store.set({ phase: "ready", seededGeneration: aGen, seededGenerationB: bGen });
     } catch (e) {
       chA.setGates({ display: true, input: true });
       chT2.setGates({ display: true, input: true });
       chB.setGates({ display: true, input: true });
+      for (const c of dupChs) serialChannels[c].setGates({ input: true });
       this.store.set({ phase: "error", error: e instanceof Error ? e.message : String(e) });
     } finally {
       this.busy = false;
@@ -183,11 +201,12 @@ class ProblemSession {
     const vms = problem.vms ?? 1;
     const twoTerms = (problem.terminals ?? 1) === 2;
     const chA = serialChannels.a0;
-    const chT2 = serialChannels.a1;
     const chB = serialChannels.b0;
     this.store.set({ phase: "grading" });
     chA.setGates({ display: false, input: false });
-    if (twoTerms) chT2.setGates({ input: false }); // 표시 유지 — 실시간 관찰(tcpdump) 화면 보존
+    // 열린 복제 세션은 입력만 잠근다 — 표시는 유지해 실시간 관찰(tcpdump) 화면을 보존
+    const dupChs = lockedDupChannels(twoTerms);
+    for (const c of dupChs) serialChannels[c].setGates({ input: false });
     if (vms === 2) chB.setGates({ display: false, input: false });
     try {
       if (!(await chA.prologue())) {
@@ -204,7 +223,7 @@ class ProblemSession {
       terminals.a0.writeDivider(report.passed ? "채점 완료 — 통과!" : "채점 완료 — 미통과");
       chA.setGates({ display: true, input: true });
       chA.sendRaw("\n");
-      if (twoTerms) chT2.setGates({ input: true });
+      for (const c of dupChs) serialChannels[c].setGates({ input: true });
       if (vms === 2) {
         chB.setGates({ display: true, input: true });
         chB.sendRaw("\n");
@@ -212,7 +231,7 @@ class ProblemSession {
       this.store.set({ phase: report.passed ? "solved" : "ready", report });
     } catch (e) {
       chA.setGates({ display: true, input: true });
-      if (twoTerms) chT2.setGates({ input: true });
+      for (const c of dupChs) serialChannels[c].setGates({ input: true });
       if (vms === 2) chB.setGates({ display: true, input: true });
       this.store.set({ phase: "error", error: e instanceof Error ? e.message : String(e) });
     } finally {

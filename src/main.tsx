@@ -7,6 +7,7 @@ import { serialBus, serialChannels } from "./vm/serialBus";
 import { vmService } from "./vm/vmService";
 import { terminals, terminalService } from "./terminal/terminalService";
 import { problemSession } from "./engine/session";
+import { termWorkspace } from "./terminal/workspace";
 import { progressStore } from "./store/progress";
 import { problems } from "./problems";
 import { verifyAll } from "./dev/verifyAll";
@@ -20,6 +21,7 @@ if (import.meta.env.DEV || new URLSearchParams(location.search).has("debug")) {
     terminalService,
     terminals,
     problemSession,
+    termWorkspace,
     progressStore,
     problems,
     verifyAll,

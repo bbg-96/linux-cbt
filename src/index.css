@@ -301,8 +301,25 @@ body {
     min-height: 0;
   }
 
-  .term-stack {
+  .term-ws {
     gap: 6px;
+  }
+
+  .term-panes {
+    gap: 6px;
+  }
+
+  /* 모바일: 신호등·버튼 라벨은 감춰 타이틀바 공간 확보 */
+  .term-dots {
+    display: none;
+  }
+
+  .term-btn-label {
+    display: none;
+  }
+
+  .term-chrome-title {
+    text-align: left;
   }
 
   .term-shell {
@@ -424,7 +441,7 @@ body {
   position: relative;
   flex: 1;
   min-height: 140px;
-  background: #0d1117;
+  background: #0c0c0c; /* xterm 테마 배경과 동일해야 패딩 영역이 이어져 보인다 */
   border: 1px solid var(--border);
   border-radius: 8px;
   overflow: hidden;
@@ -432,32 +449,81 @@ body {
   flex-direction: column;
 }
 
-.term-title {
+/* 실터미널풍 창 크롬 (타이틀바) */
+.term-chrome {
   flex: 0 0 auto;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 8px;
-  padding: 4px 12px;
-  background: var(--bg-raised);
-  border-bottom: 1px solid var(--border);
+  gap: 10px;
+  padding: 5px 10px;
+  background: linear-gradient(#1d232e, #151a23);
+  border-bottom: 1px solid #0a0d12;
   font-size: 12px;
   color: var(--text-muted);
   z-index: 5;
-  min-height: 30px;
+  min-height: 32px;
+  user-select: none;
 }
 
-.term-title-text {
+.term-dots {
+  display: inline-flex;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.term-dots i {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.term-dots .dot-r { background: #ff5f57; }
+.term-dots .dot-y { background: #febc2e; }
+.term-dots .dot-g { background: #28c840; }
+
+.term-chrome-title {
+  flex: 1 1 auto;
+  text-align: center;
+  font-family: "Cascadia Mono", Consolas, monospace;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: #9aa4b2;
 }
 
-.term-title-right {
+.term-tty {
+  font-size: 10px;
+  color: #6e7681;
+  border: 1px solid #2b323d;
+  border-radius: 4px;
+  padding: 0 5px;
+  margin-left: 8px;
+  vertical-align: 1px;
+}
+
+.term-chrome-right {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex: 0 0 auto;
+}
+
+.term-btn {
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1;
+  padding: 4px 6px;
+  cursor: pointer;
+}
+
+.term-btn:hover {
+  background: #262c38;
+  color: var(--text);
+  border-color: var(--border);
 }
 
 /* ---- 모바일 특수키 툴바 ---- */
@@ -491,12 +557,209 @@ body {
   position: relative;
 }
 
-.term-stack {
+/* ---- 터미널 워크스페이스 (서버 목록 레일 + 세션 팬) ---- */
+
+.term-ws {
   flex: 1;
   min-width: 0;
+  min-height: 0;
+  display: flex;
+  gap: 12px;
+}
+
+.server-rail {
+  flex: 0 0 176px;
+  overflow-y: auto;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rail-head {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  padding: 2px 4px 4px;
+}
+
+.rail-server {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rail-server-active {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+}
+
+.rail-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: "Cascadia Mono", Consolas, monospace;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.rail-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  background: #6e7681;
+}
+
+.rail-dot-ready { background: var(--green); box-shadow: 0 0 6px color-mix(in srgb, var(--green) 60%, transparent); }
+.rail-dot-booting { background: var(--yellow); animation: railPulse 1.1s ease-in-out infinite; }
+.rail-dot-error { background: var(--red); }
+
+@keyframes railPulse {
+  50% { opacity: 0.35; }
+}
+
+.rail-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rail-sub {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  font-family: "Cascadia Mono", Consolas, monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rail-sessions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.rail-sess {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-raised);
+  color: var(--text-muted);
+  font-size: 11px;
+  padding: 3px 7px;
+  cursor: pointer;
+}
+
+.rail-sess:hover { color: var(--text); border-color: var(--accent); }
+
+.rail-sess-active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.rail-sess-add:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.rail-sess-add:disabled:hover { color: var(--text-muted); border-color: var(--border); }
+
+.rail-tip {
+  margin: auto 0 0;
+  padding: 6px 4px 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.term-main {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.term-tabs {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.term-tab {
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-raised);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-family: "Cascadia Mono", Consolas, monospace;
+  padding: 5px 12px;
+  cursor: pointer;
+}
+
+.term-tab-active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.term-tab-off { opacity: 0.6; }
+
+.term-panes {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.term-panes > .term-shell {
+  flex: 1;
+  min-height: 0;
+}
+
+/* 세션 3~4개는 2×2 그리드로 */
+.term-panes[data-n="3"],
+.term-panes[data-n="4"] {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-auto-rows: minmax(0, 1fr);
+}
+
+.term-shell-active {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+.term-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 14px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
 }
 
 .term-overlay {
@@ -948,9 +1211,6 @@ body {
   display: flex;
 }
 
-.solve-right .term-shell {
-  flex: 1;
-}
 
 .solve-nav {
   flex: 0 0 auto;

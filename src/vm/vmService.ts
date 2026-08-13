@@ -5,6 +5,7 @@ import type { SerialChannel } from "./serialChannel";
 import { terminals, type TerminalInstance } from "../terminal/terminalService";
 import { buildV86Options, vmPathsFromBase, type AlpineManifest, type ImageKind } from "./vmConfig";
 import { disposeBridge, muteRelay } from "./netBridge";
+import { PS1_INIT } from "./shellInit";
 
 export type VmPhase = "idle" | "booting" | "ready" | "error";
 
@@ -196,11 +197,13 @@ class VmInstance {
       return "failed";
     }
 
-    // 터미널 크기·TERM 동기화 (숨김 실행) — 스냅숏 부팅 시 저장 당시 크기를 덮어쓴다
+    // 터미널 크기·TERM·프롬프트 동기화 (숨김 실행) — 스냅숏 부팅 시 저장 당시 크기를 덮어쓴다
+    // (컬러 PS1은 Alpine 전용 — 레거시 busybox의 프롬프트 이스케이프 지원은 미검증)
     this.grading.setGates({ display: false, input: false });
     const { rows, cols } = this.term.getSize();
     await this.grading.runTransaction(
-      `export TERM=vt100; stty rows ${Math.max(rows, 10)} cols ${Math.max(cols, 40)}`,
+      `export TERM=vt100; stty rows ${Math.max(rows, 10)} cols ${Math.max(cols, 40)}` +
+        (kind === "alpine" ? `; ${PS1_INIT}` : ""),
       { timeoutMs: 4000 },
     );
     if (this.emulator !== emulator) return "superseded";
@@ -218,7 +221,7 @@ class VmInstance {
 
 class VmService {
   readonly a = new VmInstance("a", serialChannels.a0, serialChannels.a1, terminals.a0);
-  readonly b = new VmInstance("b", serialChannels.b0, null, terminals.b0);
+  readonly b = new VmInstance("b", serialChannels.b0, serialChannels.b1, terminals.b0);
 
   /** 호환 표면 — 기존 코드는 메인 VM(A) 기준으로 동작 */
   get store(): Store<VmState> {
