@@ -42,4 +42,5 @@ export const text03 = {
     "각 라인의 첫 번째 일치만 바뀝니다. -i(in-place) 는 파일을 직접 수정하므로 " +
     "실수하면 되돌리기 어렵습니다 — 실무에서는 먼저 -i 없이 실행해 결과를 눈으로 " +
     "확인한 뒤 -i 를 붙이는 습관이 안전합니다.",
+  verify: { answer: ["sed -i s/8080/9090/g /root/work/config.ini"] },
 } satisfies Problem;

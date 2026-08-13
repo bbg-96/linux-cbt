@@ -58,7 +58,7 @@ class ProblemSession {
         `cd ${workdir}`,
       ];
       for (const cmd of steps) {
-        const r = await serialBus.runTransaction(cmd, { timeoutMs: 10_000 });
+        const r = await serialBus.runTransaction(cmd, { timeoutMs: problem.setupTimeoutMs ?? 10_000 });
         if (r.timedOut || r.rc !== 0) {
           throw new Error("문제 환경 준비에 실패했습니다. 다시 시도해 주세요.");
         }

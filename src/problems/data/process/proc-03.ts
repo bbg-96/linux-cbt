@@ -42,4 +42,5 @@ export const proc03 = {
     "프로세스를 즉시 제거하므로 무시가 불가능합니다.\n" +
     "단, -9 는 프로세스에게 정리할 기회를 주지 않아 임시 파일이나 락이 남을 수 있으니 " +
     "항상 일반 kill 을 먼저 시도하는 것이 올바른 순서입니다.",
+  verify: { answer: ["killall -9 stubborn.sh"] },
 } satisfies Problem;

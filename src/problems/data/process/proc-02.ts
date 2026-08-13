@@ -46,4 +46,5 @@ export const proc02 = {
     "표준 출력이 가는 곳(= task.log)으로 보냅니다. 순서가 중요합니다 — " +
     "2>&1 > task.log 로 쓰면 에러는 화면에 남습니다.\n" +
     "실행 중인 잡은 ps 로, 로그는 tail task.log 로 확인할 수 있습니다.",
+  verify: { answer: ["cd /root/work; ./long_task.sh > task.log 2>&1 &"] },
 } satisfies Problem;

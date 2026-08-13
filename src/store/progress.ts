@@ -58,3 +58,13 @@ export function recordGrade(problemId: string, passed: boolean): void {
 export function recordHint(problemId: string): void {
   update(problemId, (p) => ({ ...p, hintsUsed: p.hintsUsed + 1 }));
 }
+
+/** 진도 전체 초기화 (개발 회귀 하네스가 남긴 기록 정리용). */
+export function resetProgress(): void {
+  progressStore.set({ problems: {} });
+  try {
+    localStorage.removeItem(KEY);
+  } catch {
+    // 무시
+  }
+}

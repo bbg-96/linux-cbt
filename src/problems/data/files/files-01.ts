@@ -33,4 +33,10 @@ export const files01 = {
     "echo hello project > /root/work/project/docs/README.txt\n\n" +
     "mkdir -p 는 중간 디렉터리를 자동으로 만들어 주고, 이미 있어도 오류를 내지 않습니다.\n" +
     "> 리다이렉션은 파일이 없으면 만들고, 있으면 내용을 덮어씁니다.",
+  verify: {
+    answer: [
+      "mkdir -p /root/work/project/src /root/work/project/docs",
+      "echo hello project > /root/work/project/docs/README.txt",
+    ],
+  },
 } satisfies Problem;

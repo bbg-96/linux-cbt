@@ -50,4 +50,5 @@ export const files03 = {
     "링크를 따라가 v2.conf 내용이 보입니다. 나중에 v3를 배포할 때는 링크만 바꾸면 되므로 " +
     "(ln -sf versions/v3.conf current.conf) 애플리케이션 설정 경로는 그대로 유지됩니다.\n" +
     "하드 링크(ln)와 달리 심볼릭 링크는 디렉터리나 다른 파일시스템도 가리킬 수 있습니다.",
+  verify: { answer: ["cd /root/work; ln -s versions/v2.conf current.conf"] },
 } satisfies Problem;

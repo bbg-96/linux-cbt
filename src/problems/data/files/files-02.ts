@@ -48,4 +48,11 @@ export const files02 = {
     "rm /root/work/logs/temp.tmp\n\n" +
     "cp 는 원본을 남기지만 mv 는 파일을 옮깁니다. 셸이 *.log 를 " +
     "app.log db.log 로 확장(글로빙)해 주기 때문에 파일을 일일이 지정할 필요가 없습니다.",
+  verify: {
+    answer: [
+      "mkdir /root/work/archive",
+      "mv /root/work/logs/app.log /root/work/logs/db.log /root/work/archive/",
+      "rm /root/work/logs/temp.tmp",
+    ],
+  },
 } satisfies Problem;

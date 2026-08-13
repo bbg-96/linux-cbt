@@ -46,4 +46,5 @@ export const text01 = {
     "grep 은 패턴과 일치하는 라인을 골라내는 가장 기본적인 텍스트 필터입니다. " +
     "> 리다이렉션과 조합하면 필터 결과를 파일로 저장할 수 있습니다.\n" +
     "참고: grep -v ERROR 는 반대로 ERROR가 없는 라인만, grep -c ERROR 는 개수만 출력합니다.",
+  verify: { answer: ["grep ERROR /root/work/app.log > /root/work/errors.txt"] },
 } satisfies Problem;

@@ -37,4 +37,5 @@ export const arch03 = {
     "압축을 풀려면 gunzip huge.log.gz, 풀지 않고 내용만 보려면 zcat 이나 " +
     "zcat 파일 | grep 패턴 으로 검색할 수 있습니다. tar 가 '여러 파일 묶기'라면 " +
     "gzip 은 '한 파일 압축'을 담당합니다.",
+  verify: { answer: ["gzip /root/work/huge.log"] },
 } satisfies Problem;

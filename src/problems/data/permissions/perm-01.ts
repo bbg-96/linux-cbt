@@ -39,4 +39,5 @@ export const perm01 = {
     "실행 권한(x)이 없는 스크립트는 ./backup.sh 형태로 실행할 수 없습니다. " +
     "chmod u+x backup.sh 처럼 심볼릭 모드로 실행 권한만 추가한 뒤 " +
     "chmod go-w 등으로 조정하는 방법도 있습니다.",
+  verify: { answer: ["chmod 744 /root/work/backup.sh"] },
 } satisfies Problem;

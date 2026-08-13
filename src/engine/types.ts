@@ -1,4 +1,12 @@
-export type CategoryId = "files" | "permissions" | "text" | "process" | "archive";
+export type CategoryId =
+  | "files"
+  | "permissions"
+  | "text"
+  | "search"
+  | "process"
+  | "archive"
+  | "system"
+  | "network";
 
 interface CheckBase {
   id: string;
@@ -56,12 +64,19 @@ export interface Problem {
   workdir?: string;
   /** 숨김 셋업 명령 (한 줄씩 순서대로 트랜잭션 실행; 실패 시 시딩 중단) */
   setup?: string[];
+  /** setup 각 줄의 타임아웃 (기본 10초; NetworkManager 기동 등 느린 셋업용) */
+  setupTimeoutMs?: number;
   /** 전부 통과해야 해결 */
   checks: Check[];
   /** 단계적으로 공개되는 힌트 */
   hints: string[];
   /** 모범답안 + 해설 (해결 후 또는 포기 시 공개) */
   explanation: string;
+  /**
+   * 자동 검증용 모범답안 명령 (dev 회귀 하네스 __cbt.verifyAll 전용).
+   * 정답은 explanation에 이미 공개되어 있으므로 비밀 유출이 아니다.
+   */
+  verify?: { answer: string[] };
 }
 
 export type CheckStatus = "pass" | "fail" | "timeout" | "error";

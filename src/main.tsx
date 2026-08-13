@@ -9,6 +9,7 @@ import { terminalService } from "./terminal/terminalService";
 import { problemSession } from "./engine/session";
 import { progressStore } from "./store/progress";
 import { problems } from "./problems";
+import { verifyAll } from "./dev/verifyAll";
 
 if (import.meta.env.DEV || new URLSearchParams(location.search).has("debug")) {
   // 개발 콘솔에서 시리얼 프로토콜을 직접 검증하기 위한 훅 (빌드에서는 ?debug 로 활성화)
@@ -19,6 +20,7 @@ if (import.meta.env.DEV || new URLSearchParams(location.search).has("debug")) {
     problemSession,
     progressStore,
     problems,
+    verifyAll,
   };
 }
 

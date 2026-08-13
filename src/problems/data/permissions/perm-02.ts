@@ -33,4 +33,7 @@ export const perm02 = {
     "600 = rw- --- --- : 소유자만 읽기·쓰기. 비밀키, 자격증명 파일의 표준 권한입니다 " +
     "(예: SSH 개인키는 600이 아니면 접속이 거부됩니다).\n" +
     "644 = rw- r-- r-- : 소유자만 수정하고 나머지는 읽기 전용. 일반 문서/설정의 기본값입니다.",
+  verify: {
+    answer: ["chmod 600 /root/work/secret.txt", "chmod 644 /root/work/public.txt"],
+  },
 } satisfies Problem;

@@ -39,4 +39,5 @@ export const proc01 = {
     "kill 은 기본적으로 TERM(15) 신호를 보내 프로세스에게 정상 종료를 요청합니다. " +
     "ps 출력에서 grep 자기 자신도 걸리는 것을 걸러내려면 grep -v grep 을 덧붙입니다.\n" +
     "프로세스 종료와 파일 삭제는 별개입니다 — 파일을 지워도 이미 뜬 프로세스는 계속 돕니다.",
+  verify: { answer: ["killall rogue.sh"] },
 } satisfies Problem;

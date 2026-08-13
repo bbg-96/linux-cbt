@@ -41,4 +41,5 @@ export const text02 = {
     "파이프(|)는 앞 명령의 출력을 뒤 명령의 입력으로 넘깁니다. " +
     "uniq 는 '연속된' 중복만 제거하기 때문에 정렬이 선행되어야 정확합니다. " +
     "sort -u 는 정렬과 중복 제거를 한 번에 처리하는 단축형입니다.",
+  verify: { answer: ["sort /root/work/users.txt | uniq > /root/work/unique.txt"] },
 } satisfies Problem;

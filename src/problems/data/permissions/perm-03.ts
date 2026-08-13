@@ -46,4 +46,7 @@ export const perm03 = {
     "(chown worker 파일 + chgrp worker 파일 두 번으로 나눠도 됩니다).\n" +
     "640 = rw- r-- --- : 소유자는 읽기·쓰기, 같은 그룹은 읽기만, 그 외에는 접근 불가. " +
     "팀 내 공유 문서에 자주 쓰는 패턴입니다.",
+  verify: {
+    answer: ["chown worker:worker /root/work/handover.txt", "chmod 640 /root/work/handover.txt"],
+  },
 } satisfies Problem;
