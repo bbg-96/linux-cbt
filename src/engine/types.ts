@@ -1,4 +1,5 @@
 export type CategoryId =
+  // 기초 문법 트랙 (운영 사이트)
   | "files"
   | "permissions"
   | "text"
@@ -6,7 +7,13 @@ export type CategoryId =
   | "process"
   | "archive"
   | "system"
-  | "network";
+  // 클라우드 실무 트랙 (스테이징) — network는 두 트랙이 공유한다
+  | "triage"
+  | "service"
+  | "network"
+  | "storage"
+  | "security"
+  | "automation";
 
 interface CheckBase {
   id: string;

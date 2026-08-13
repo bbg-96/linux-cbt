@@ -210,8 +210,7 @@ class VmInstance {
 
     // stty 트랜잭션의 후행 프롬프트를 흘려보낸 뒤 표시를 연다 (프롬프트 중복 방지)
     await this.grading.waitPrompt();
-    this.term.resetScreen();
-    this.term.writeDivider(this.id === "a" ? "리눅스 셸 준비 완료" : "Host B 셸 준비 완료");
+    this.term.resetScreen(); // 안내 배너 없이 깨끗한 프롬프트만
     this.grading.setGates({ display: true, input: true });
     this.grading.sendRaw("\n");
     this.store.set({ phase: "ready" });

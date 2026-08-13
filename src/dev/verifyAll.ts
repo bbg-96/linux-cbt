@@ -2,6 +2,7 @@
 // window.__cbt.verifyAll() 로 호출 (dev 또는 ?debug 빌드).
 import { findProblem, problems } from "../problems";
 import { problemSession } from "../engine/session";
+import { termWorkspace } from "../terminal/workspace";
 import { serialChannels } from "../vm/serialBus";
 import { vmService } from "../vm/vmService";
 import { resetProgress } from "../store/progress";
@@ -18,6 +19,8 @@ async function verifyOne(problem: Problem): Promise<string> {
   if (vmService.store.get().phase !== "ready") return `${problem.id}: FAIL@vm-not-ready`;
 
   problemSession.leave();
+  // 학습자가 UI에서 하는 것과 같은 순서: 문제 진입 → 워크스페이스 구성 → 시딩
+  termWorkspace.configureProblem(problem);
   await problemSession.seed(problem);
   let s = problemSession.store.get();
   if (s.phase !== "ready") return `${problem.id}: FAIL@seed ${s.error ?? ""}`;
@@ -28,6 +31,9 @@ async function verifyOne(problem: Problem): Promise<string> {
 
   for (const step of problem.verify.answer) {
     const { ch, cmd, on } = stepChannel(step);
+    // t2 스텝은 학습자가 ⧉ 복제로 세션 ②를 여는 동작에 해당한다 (시딩이 셸을 미리
+    // 준비해 두므로 즉시 열린다). 열지 않고 보내면 화면 없는 셸에 명령이 들어간다.
+    if (on === "t2" && !termWorkspace.hasSession("a1")) await termWorkspace.duplicate("a");
     const r = await ch.runTransaction(cmd, { timeoutMs: 15_000 });
     if (r.timedOut) return `${problem.id}: FAIL@answer-timeout (${on}: ${cmd})`;
   }

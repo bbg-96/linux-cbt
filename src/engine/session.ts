@@ -162,13 +162,12 @@ class ProblemSession {
       if (twoTerms) await chT2.waitPrompt();
       if (vms === 2) await chB.waitPrompt();
 
+      // 실제 콘솔처럼 안내 배너 없이 깨끗한 프롬프트만 보여준다
       terminals.a0.resetScreen();
-      terminals.a0.writeDivider(`문제 준비 완료 — ${problem.title}`);
       chA.setGates({ display: true, input: true });
       chA.sendRaw("\n");
       if (twoTerms) {
         terminals.a1.resetScreen();
-        terminals.a1.writeDivider("세션 ② — 같은 서버의 두 번째 셸");
         chT2.setGates({ display: true, input: true });
         chT2.sendRaw("\n");
         // 복제 버튼으로 열 때 재준비(prologue)하지 않도록 준비 완료를 기록
@@ -176,7 +175,6 @@ class ProblemSession {
       }
       if (vms === 2) {
         terminals.b0.resetScreen();
-        terminals.b0.writeDivider("Host B 준비 완료");
         chB.setGates({ display: true, input: true });
         chB.sendRaw("\n");
       }

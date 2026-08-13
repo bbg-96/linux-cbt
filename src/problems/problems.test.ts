@@ -1,8 +1,18 @@
 import { describe, expect, it } from "vitest";
-// 빌드 모드(운영/스테이징)와 무관하게 전체 카탈로그를 항상 검증한다
-import { ALL_PROBLEMS as problems } from "./all";
+// 빌드 모드(운영/스테이징)와 무관하게 두 트랙의 문제를 모두 검증한다
+import { ALL_PROBLEMS } from "./all";
+import { STAGING_PROBLEMS } from "./staging";
+
+const problems = [...ALL_PROBLEMS, ...STAGING_PROBLEMS];
 
 describe("문제 스키마 제약", () => {
+  it("한 트랙 안에서 문제 id가 중복되지 않는다", () => {
+    for (const track of [ALL_PROBLEMS, STAGING_PROBLEMS]) {
+      const ids = track.map((p) => p.id);
+      expect(new Set(ids).size).toBe(ids.length);
+    }
+  });
+
   it("vms:2 문제는 terminals:2를 함께 쓰지 않는다 (패널 최대 2개)", () => {
     for (const p of problems) {
       if ((p.vms ?? 1) === 2) {
