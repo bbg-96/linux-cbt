@@ -3,18 +3,12 @@ FROM docker.io/i386/alpine:3.21
 
 ENV KERNEL=virt
 # 학습 도구 패키지 (원본의 nodejs 대신 문제군에 필요한 도구들)
-#  - 기초 트랙: bash iproute2 net-tools iptables tcpdump ripgrep findutils gawk
-#  - 클라우드 실무 트랙(스테이징) 추가분:
-#      busybox-extras  httpd (테스트용 경량 웹서버 — 서비스/포트 문제의 더미 서비스)
-#      procps          ps aux --sort=, pgrep -af 등 실서버와 같은 GNU 동작
-#      coreutils       sort -h, head -n -6 처럼 busybox에 없는 GNU 옵션
-#      util-linux      findmnt (마운트 확인)
-#      curl            HTTP 계층 헬스체크
-#      nginx           설정 검사(nginx -t) 문제
-#      rsync           미러링·dry-run 문제
-#      rpm sqlite      RPM DB 재구축 문제 (rpm-dev = rpmbuild)
-ENV ADDPKGS="bash iproute2 net-tools iptables tcpdump ripgrep findutils gawk \
-busybox-extras procps coreutils util-linux curl nginx rsync rpm rpm-dev sqlite"
+#
+# 패키지를 늘릴 때 주의: nginx/rpm/coreutils/procps 등을 넣어 rootfs를 4,900여 파일로
+# 키웠더니 배포 환경(9p over HTTP)에서 게스트 커널이 p9_fcall_init→__kmalloc 경로에서
+# 반복 oops를 일으켰다(로컬 dev에서는 재현되지 않음). 도구가 정말 필요하면 최소한으로
+# 추가하고 반드시 배포본에서 dmesg oops 0을 확인할 것.
+ENV ADDPKGS="bash iproute2 net-tools iptables tcpdump ripgrep findutils gawk"
 # 1이면 NetworkManager(nmcli) 포함 — 기본 런레벨에는 넣지 않는다
 ARG WITH_NM=0
 
