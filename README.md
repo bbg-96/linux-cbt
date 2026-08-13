@@ -9,11 +9,19 @@
   DHCP·ARP·ICMP가 실제로 오간다. 서버·백엔드 없음, 정적 호스팅 가능.
 - 부트 스냅숏(`state.bin.zst`)으로 수 초 만에 셸이 뜬다. 진도는 localStorage에 저장.
 
-## 문제 구성 (8 카테고리 · 28문제)
+## 문제 구성 (8 카테고리 · 30문제)
 
 파일과 디렉터리 / 권한 관리 / 텍스트 처리와 파이프(awk 포함) / 파일 검색(find·ripgrep) /
 프로세스 관리 / 압축과 아카이브 / 시스템과 디스크(df·du) / **네트워크**(ip·route·ping·netstat·
-iptables·tcpdump·nmcli)
+iptables·tcpdump·nmcli·nc)
+
+네트워크 카테고리에는 두 가지 특수 문제 형태가 있다:
+
+- **듀얼 터미널** (`terminals: 2`, net-05): 같은 VM의 ttyS0/ttyS1 두 셸이 상하로 표시된다.
+  터미널 ②에 tcpdump 를 켜 두고 터미널 ①에서 ping 을 치며 패킷을 실시간 관찰하는 식.
+- **양단(2-VM)** (`vms: 2`, net-07/08): 두 번째 v86 인스턴스(Host B)가 첫 진입 시 부팅되어
+  L2 프레임 브리지로 연결된다. A에서 ping → B에서 tcpdump 수신 증명, B의 nc 서버 ← A 클라이언트
+  등 진짜 두 호스트 간 통신을 실습한다.
 
 모든 문제는 `verify.answer`(모범답안)를 갖고 있어 `__cbt.verifyAll()` 로
 "초기상태 채점=불통과 → 모범답안 실행 → 재채점=통과" 사이클을 자동 회귀할 수 있다
@@ -80,6 +88,16 @@ src/dev/verifyAll.ts   회귀 하네스
 - **네트워크 문제는 반드시 `...NET_RESET`으로 setup을 시작** — 네트워크 상태는 전역이라
   이전 문제의 iptables 규칙·주소·NM이 남는다. NM이 필요하면 setup에서 udev/dbus/NM을 띄운다
   (net-06 참고, `setupTimeoutMs` 상향).
+- **듀얼 터미널(`terminals: 2`)**: 채점은 터미널 ②(a1)를 절대 건드리지 않으므로(prologue 없음 —
+  학습자의 실시간 tcpdump 보존) 체크는 a0에서 `pgrep` 등으로 확인한다.
+  `ps | grep -q 패턴`은 grep 자신이 매치되는 버그가 있으니 `pgrep -f`를 쓸 것.
+- **양단(`vms: 2`)**: `setupB`가 Host B(b0)에서 실행되고, 체크는 `on: "b"`로 B를 지정한다.
+  규칙 3가지 — ① setup/setupB 모두 `...NET_RESET, ...MAC_REFRESH` 필수(스냅숏 복원 시 두
+  게스트의 MAC이 같아지므로 드라이버 재로드로 분리), ② B에서 채점 시점에 포그라운드
+  프로세스가 남으면 안 됨(`&` 또는 `-c` 자기종료만 — 채점 prologue가 Ctrl+C를 보냄),
+  ③ DHCP 금지·정적 IP만(192.168.86.x, A=.10/B=.20 관례). 첫 L2 접촉은 ARP+JIT 콜드스타트로
+  수 초 걸릴 수 있으니 setupB 마지막에 예열 ping을 넣는다 (net-08 참고).
+  `terminals: 2`와 `vms: 2`는 동시 사용 불가(패널 최대 2개, 테스트로 강제됨).
 
 ### 게스트 환경 메모
 
@@ -89,7 +107,9 @@ src/dev/verifyAll.ts   회귀 하네스
 - NetworkManager 특이사항(이미지에 반영됨): 장치 관리에 eudev 필요, ACD 오탐 방지로
   `ipv4.dad-timeout=0`이 conf.d에 내장, IPv6 RA가 없어 프로필에 `ipv6.method disabled` 권장.
 - 스냅숏과 이미지가 어긋나면 vmService가 콜드 부팅으로 자동 폴백한다
-  (이미지 재빌드 후 `node scripts/build-state.mjs` 재실행 필수).
+  (이미지 재빌드 후 `node scripts/build-state.mjs` 재실행 필수 — V86 옵션 변경 시에도 동일).
+- v86 fetch 릴레이는 서브넷 내 ARP 프록시·ICMP 스푸핑·게스트 간 TCP RST를 하므로,
+  양단 문제 동안 A의 릴레이는 음소거되고 B는 아예 릴레이 없이 생성된다 (src/vm/netBridge.ts).
 
 ## 라이선스/출처
 
