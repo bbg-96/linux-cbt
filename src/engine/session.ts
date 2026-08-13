@@ -142,6 +142,12 @@ class ProblemSession {
       }
 
       // ── 화면 정리 + 게이트 오픈 ────────────────────────────────────
+      // 마지막 트랜잭션의 후행 프롬프트를 게이트가 닫힌 동안 흘려보낸다
+      // (안 하면 그 프롬프트 + 아래 sendRaw("\n")의 프롬프트가 겹쳐 두 줄이 된다)
+      await chA.waitQuiet();
+      if (twoTerms) await chT2.waitQuiet();
+      if (vms === 2) await chB.waitQuiet();
+
       terminals.a0.resetScreen();
       terminals.a0.writeDivider(`문제 준비 완료 — ${problem.title}`);
       chA.setGates({ display: true, input: true });
@@ -192,6 +198,9 @@ class ProblemSession {
       }
       const report = await gradeProblem(problem, { a: chA, b: vms === 2 ? chB : undefined });
       recordGrade(problem.id, report.passed);
+      // 마지막 검사 명령의 후행 프롬프트를 흘려보낸 뒤 표시를 연다 (seed와 동일한 이유)
+      await chA.waitQuiet();
+      if (vms === 2) await chB.waitQuiet();
       terminals.a0.writeDivider(report.passed ? "채점 완료 — 통과!" : "채점 완료 — 미통과");
       chA.setGates({ display: true, input: true });
       chA.sendRaw("\n");

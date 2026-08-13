@@ -205,6 +205,8 @@ class VmInstance {
     );
     if (this.emulator !== emulator) return "superseded";
 
+    // stty 트랜잭션의 후행 프롬프트를 흘려보낸 뒤 표시를 연다 (프롬프트 중복 방지)
+    await this.grading.waitQuiet();
     this.term.resetScreen();
     this.term.writeDivider(this.id === "a" ? "리눅스 셸 준비 완료" : "Host B 셸 준비 완료");
     this.grading.setGates({ display: true, input: true });

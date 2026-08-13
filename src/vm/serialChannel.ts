@@ -165,6 +165,21 @@ export class SerialChannel {
     });
   }
 
+  /**
+   * 출력이 quietMs 동안 멎을 때까지 기다린다 (최대 timeoutMs).
+   * 트랜잭션은 END 마커를 파싱한 순간 resolve되지만 셸의 후행 프롬프트는
+   * 그보다 수십 ms 뒤에 도착한다. 표시 게이트를 열기 전에 이걸 흘려보내지 않으면
+   * 직전 명령의 프롬프트가 화면에 남아 프롬프트가 두 줄로 보인다.
+   */
+  async waitQuiet(quietMs = 150, timeoutMs = 1500): Promise<void> {
+    const start = Date.now();
+    while (Date.now() - start < timeoutMs) {
+      const idle = Date.now() - this.lastOutputAt;
+      if (idle >= quietMs) return;
+      await sleep(Math.min(quietMs - idle, 50));
+    }
+  }
+
   async probe(timeoutMs = 1500): Promise<boolean> {
     const r = await this.runTransaction("true", { timeoutMs });
     return !r.timedOut && r.rc === 0;
