@@ -118,7 +118,7 @@ class VmService {
     serialBus.attach(emulator);
     // 스냅숏 복원은 수 초, 콜드 부팅(특히 Alpine 9p 첫 부팅)은 수 분까지 허용
     const bootTimeoutMs = kind === "legacy" ? 90_000 : withState ? 120_000 : 240_000;
-    const ok = await serialBus.waitForShell(bootTimeoutMs);
+    const ok = await serialBus.waitForShell(bootTimeoutMs, { expectSilentStart: withState });
     if (this.emulator !== emulator) return "superseded"; // 도중에 restart됨
     this.store.set({ download: null });
     if (!ok) {

@@ -169,13 +169,22 @@ class SerialBus {
   /**
    * 부팅 감지: 출력이 잠잠해지면 probe 트랜잭션을 시도하고, 성공할 때까지
    * (또는 전체 타임아웃까지) 반복한다. 프롬프트 정규식에 의존하지 않는다.
+   * 스냅숏 복원(expectSilentStart)은 시리얼 출력이 전혀 없을 수 있으므로
+   * 짧은 유예 후 출력 없이도 probe를 시도한다.
    */
-  async waitForShell(totalTimeoutMs: number): Promise<boolean> {
+  async waitForShell(
+    totalTimeoutMs: number,
+    opts: { expectSilentStart?: boolean } = {},
+  ): Promise<boolean> {
     const start = Date.now();
     while (Date.now() - start < totalTimeoutMs) {
       await sleep(600);
-      if (this.lastOutputAt === 0) continue; // 아직 아무 출력도 없음
-      if (Date.now() - this.lastOutputAt < 700) continue; // 부팅 출력 진행 중
+      if (this.lastOutputAt === 0) {
+        // 콜드 부팅은 커널 출력이 나올 때까지 대기, 스냅숏 복원은 2초 유예 후 probe
+        if (!opts.expectSilentStart || Date.now() - start < 2000) continue;
+      } else if (Date.now() - this.lastOutputAt < 700) {
+        continue; // 부팅 출력 진행 중
+      }
 
       // 로그인 프롬프트에서 명령을 타이핑하면 안 되므로 먼저 처리한다
       const tail = this.assembler.getPartial();
