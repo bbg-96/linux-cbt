@@ -14,14 +14,25 @@ export interface VmImagePaths {
   legacyIso: string;
 }
 
-export function vmPathsFromBase(base: string): VmImagePaths {
+/**
+ * `version`(이미지 빌드 식별자)이 주어지면 fs.json·state.bin.zst URL에 붙인다.
+ *
+ * 이 두 파일은 이름이 고정이라 브라우저 캐시(Pages: max-age=600)에 남는데, 스냅숏은
+ * 그 파일시스템의 9p inode 배치까지 담은 메모리 이미지라 **둘이 반드시 같은 빌드여야
+ * 한다**. 재배포 직후 재방문자가 구 스냅숏 + 신 fs.json을 섞어 부팅하면 게스트가
+ * 조용히 망가진다 (실제로 modprobe에서 커널 oops로 관측됨). 버전을 URL에 실으면
+ * 이미지가 바뀔 때마다 새 URL이 되어 섞일 수 없다.
+ * rootfs-flat 파일들은 내용 해시가 곧 이름이라 이 문제가 없다.
+ */
+export function vmPathsFromBase(base: string, version?: string): VmImagePaths {
+  const v = version ? `?v=${version}` : "";
   return {
     wasm: `${base}vm/v86.wasm`,
     seabios: `${base}vm/bios/seabios.bin`,
     vgabios: `${base}vm/bios/vgabios.bin`,
-    alpineFsJson: `${base}vm/alpine/fs.json`,
+    alpineFsJson: `${base}vm/alpine/fs.json${v}`,
     alpineRootfsBase: `${base}vm/alpine/rootfs-flat/`,
-    alpineState: `${base}vm/alpine/state.bin.zst`,
+    alpineState: `${base}vm/alpine/state.bin.zst${v}`,
     legacyIso: `${base}vm/linux.iso`,
   };
 }
@@ -86,4 +97,10 @@ export interface AlpineManifest {
   withNM: number;
   hasState: boolean;
   builtAt: string;
+  stateBuiltAt?: string;
+}
+
+/** 이미지 빌드 식별자 — fs.json 해시 앞부분 (URL 캐시 버스팅용). */
+export function imageVersion(manifest: AlpineManifest): string {
+  return manifest.fsJsonSha256.slice(0, 12);
 }

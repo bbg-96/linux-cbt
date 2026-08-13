@@ -3,7 +3,13 @@ import { createStore, type Store } from "../lib/store";
 import { serialChannels } from "./serialBus";
 import type { SerialChannel } from "./serialChannel";
 import { terminals, type TerminalInstance } from "../terminal/terminalService";
-import { buildV86Options, vmPathsFromBase, type AlpineManifest, type ImageKind } from "./vmConfig";
+import {
+  buildV86Options,
+  imageVersion,
+  vmPathsFromBase,
+  type AlpineManifest,
+  type ImageKind,
+} from "./vmConfig";
 import { disposeBridge, muteRelay } from "./netBridge";
 import { PS1_INIT } from "./shellInit";
 
@@ -29,16 +35,17 @@ function detectImageKind(): ImageKind {
   return "alpine";
 }
 
-let manifestPromise: Promise<boolean> | null = null;
-function fetchHasState(base: string): Promise<boolean> {
+// 매니페스트는 항상 서버에 재검증한다(no-cache) — 이미지 버전의 단일 진실이라
+// 여기서 캐시를 신뢰하면 버전 고정 자체가 무의미해진다.
+let manifestPromise: Promise<AlpineManifest | null> | null = null;
+function fetchManifest(base: string): Promise<AlpineManifest | null> {
   manifestPromise ??= (async () => {
     try {
       const res = await fetch(`${base}vm/alpine/manifest.json`, { cache: "no-cache" });
-      if (!res.ok) return false;
-      const manifest = (await res.json()) as AlpineManifest;
-      return manifest.hasState === true;
+      if (!res.ok) return null;
+      return (await res.json()) as AlpineManifest;
     } catch {
-      return false;
+      return null;
     }
   })();
   return manifestPromise;
@@ -143,8 +150,10 @@ class VmInstance {
     this.grading.setGates({ display: true, input: false });
 
     const base = import.meta.env.BASE_URL;
-    const paths = vmPathsFromBase(base);
-    const hasState = kind === "alpine" ? await fetchHasState(base) : false;
+    const manifest = kind === "alpine" ? await fetchManifest(base) : null;
+    // fs.json·스냅숏은 같은 빌드끼리만 짝지어야 한다 (vmConfig 주석 참고)
+    const paths = vmPathsFromBase(base, manifest ? imageVersion(manifest) : undefined);
+    const hasState = manifest?.hasState === true;
 
     // 스냅숏 복원 실패(이미지-스냅숏 불일치 등) 시 콜드 부팅으로 한 번 더 시도
     const attempts = hasState ? [true, false] : [false];
