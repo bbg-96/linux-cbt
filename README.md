@@ -45,13 +45,22 @@ npm run build && npm run preview   # 프로덕션 빌드 확인
 npm test                           # 시리얼 프로토콜 단위 테스트 (vitest)
 ```
 
-## 배포 (GitHub Pages)
+## 배포 (GitHub Pages) — 사이트 2개
 
 정적 사이트라 파일만 올리면 되고, **사용자는 브라우저만 있으면 된다** (WSL·Docker·설치 불필요).
+한 코드베이스에서 **문제 목록만 바꿔** 두 사이트에 배포한다 — 엔진·UI 개선은 양쪽에 자동 반영된다.
 
-```bash
-npm run build && npm run deploy    # dist → gh-pages 브랜치로 푸시
-```
+| 사이트 | 주소 | 문제 세트 | 배포 |
+|---|---|---|---|
+| 운영 | https://bbg-96.github.io/linux-cbt/ | `src/problems/all.ts` (전체 30문제) | `npm run build && npm run deploy` |
+| 스테이징 | https://bbg-96.github.io/linux-cbt-staging/ | `src/problems/staging.ts` (선별, 현재 0개) | `npm run build:staging && npm run deploy:staging` |
+
+- 스테이징에 문제를 넣으려면 `src/problems/staging.ts`의 배열에 추가한다. 기존 문제를
+  import해 담아도 되고(`import { perm01 } from "./data/permissions/perm-01"`), 새로 만든
+  문제 모듈을 넣어도 된다. 배열 순서가 곧 커리큘럼 순서다.
+- 빌드 산출물이 섞이지 않도록 스테이징은 `dist-staging`으로 뽑고, 각각 다른 저장소의
+  `gh-pages` 브랜치로 force push 한다(`scripts/deploy.mjs`의 타깃 표 참조).
+- 테스트는 빌드 모드와 무관하게 항상 전체 카탈로그(`ALL_PROBLEMS`)를 검증한다.
 
 - 이미지 산출물(`public/vm/alpine/`, 약 70MB)은 **main에 커밋하지 않는다.** `gh-pages`
   브랜치에만 담기므로 소스 히스토리가 바이너리로 부풀지 않는다. 산출물을 새로 만들려면

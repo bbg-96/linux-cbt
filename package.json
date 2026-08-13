@@ -9,8 +9,10 @@
     "dev": "vite",
     "prebuild": "node scripts/copy-v86-assets.mjs",
     "build": "tsc -b && vite build",
+    "build:staging": "tsc -b && vite build --mode staging --outDir dist-staging",
     "preview": "vite preview",
     "deploy": "node scripts/deploy.mjs",
+    "deploy:staging": "node scripts/deploy.mjs staging",
     "test": "vitest run"
   },
   "dependencies": {

@@ -24,6 +24,23 @@ export function DashboardPage() {
   const solvedCount = problems.filter((p) => isSolved(p.id)).length;
   const attemptedCount = problems.filter((p) => progress.problems[p.id]?.status === "attempted").length;
   const next = continueTarget(progress.lastProblemId, isSolved);
+  const empty = problems.length === 0;
+
+  if (empty) {
+    return (
+      <div className="dash-page">
+        <section className="dash-hero">
+          <div className="dash-hero-info">
+            <h1>등록된 문제가 없습니다</h1>
+            <p className="muted">
+              선별한 문제가 등록되면 여기에 표시됩니다. 그동안 상단의{" "}
+              <Link to="/terminal">터미널</Link>에서 자유롭게 리눅스를 연습할 수 있습니다.
+            </p>
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div className="dash-page">
@@ -52,7 +69,7 @@ export function DashboardPage() {
       </section>
 
       <div className="cat-grid">
-        {CATEGORIES.map((cat) => {
+        {CATEGORIES.filter((cat) => problems.some((p) => p.category === cat.id)).map((cat) => {
           const items = problems.filter((p) => p.category === cat.id);
           const solved = items.filter((p) => isSolved(p.id)).length;
           const done = items.length > 0 && solved === items.length;

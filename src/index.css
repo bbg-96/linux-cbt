@@ -170,6 +170,12 @@ body {
   color: var(--green);
 }
 
+.side-empty {
+  font-size: 13px;
+  padding: 12px 10px;
+  margin: 0;
+}
+
 .side-cmds {
   margin: 1px 0 4px;
 }

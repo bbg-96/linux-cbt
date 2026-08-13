@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { problems } from "./index";
+// 빌드 모드(운영/스테이징)와 무관하게 전체 카탈로그를 항상 검증한다
+import { ALL_PROBLEMS as problems } from "./all";
 
 describe("문제 스키마 제약", () => {
   it("vms:2 문제는 terminals:2를 함께 쓰지 않는다 (패널 최대 2개)", () => {

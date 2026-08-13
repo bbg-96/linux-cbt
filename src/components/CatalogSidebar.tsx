@@ -30,9 +30,20 @@ export function CatalogSidebar() {
   const isSolved = (p: Problem) => progress.problems[p.id]?.status === "solved";
   const isExpanded = (catId: string) => manual[catId] ?? catId === activeCat;
 
+  // 문제가 없는 카테고리는 트리에서 감춘다 (스테이징처럼 일부만 등록된 경우 대비)
+  const visibleCategories = CATEGORIES.filter((cat) => problems.some((p) => p.category === cat.id));
+
+  if (visibleCategories.length === 0) {
+    return (
+      <aside className="sidebar">
+        <p className="side-empty muted">등록된 문제가 없습니다.</p>
+      </aside>
+    );
+  }
+
   return (
     <aside className="sidebar">
-      {CATEGORIES.map((cat) => {
+      {visibleCategories.map((cat) => {
         const items = problems.filter((p) => p.category === cat.id);
         const solved = items.filter(isSolved).length;
         const expanded = isExpanded(cat.id);
