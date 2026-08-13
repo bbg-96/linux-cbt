@@ -43,10 +43,6 @@ iptables·tcpdump·nmcli·nc)
 기본값이 빈 목록이다(`src/problems/staging.ts`) — 문제가 없는 카테고리는 대시보드와
 사이드바에서 자동으로 숨겨진다.
 
-게스트 이미지에는 nginx·rpm·rsync·curl·GNU coreutils/procps·findmnt 등 서버 운영 도구가
-함께 들어 있다. 기초 30문제는 쓰지 않지만, 실무형 문제를 추가할 때 이미지 재빌드 없이
-바로 쓸 수 있도록 남겨 둔 것이다.
-
 네트워크 카테고리에는 두 가지 특수 문제 형태가 있다:
 
 - **듀얼 터미널** (`terminals: 2`, net-05): 세션 복제로 같은 VM의 두 번째 셸(ttyS1)을
@@ -117,6 +113,12 @@ node scripts/build-state.mjs   # 부트 스냅숏 생성 (이미지 재빌드 �
 
 - `image/alpine/Dockerfile` 이 게스트 구성의 전부다: 패키지, agetty 자동 로그인(ttyS0, root),
   virtio_net 모듈, lo만 올리는 네트워크 초기화, `WITH_NM=1` 시 dbus/NetworkManager/eudev.
+- **패키지를 늘릴 때는 반드시 배포본에서 검증한다.** nginx·rpm·coreutils·procps 등을 넣어
+  rootfs를 1,728→4,925파일(51→78MB)로 키웠더니, 로컬 dev에서는 전 문제가 통과했는데
+  GitHub Pages에서는 게스트 커널이 `p9_fcall_init→__kmalloc_noprof` NULL 역참조 oops를
+  연발하며 부팅 직후부터 망가졌다(9p over HTTP 부하가 방아쇠). 전송 무결성·스냅숏 짝은
+  모두 정상이었다. 판정은 배포본에서 `dmesg | grep -c 'Oops:'` 가 0인지로 한다 —
+  dev 통과는 증거가 되지 않는다.
 - 빌드 중 "Permission denied"가 나면 dev 서버(브라우저 탭)가 이미지 파일을 잠근 것 —
   탭을 다른 페이지로 옮기고 재시도.
 - `?legacy` URL 파라미터로 구 buildroot ISO(`public/vm/linux.iso`)를 부팅할 수 있다(임시 폴백).
