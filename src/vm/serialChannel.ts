@@ -166,18 +166,22 @@ export class SerialChannel {
   }
 
   /**
-   * 출력이 quietMs 동안 멎을 때까지 기다린다 (최대 timeoutMs).
-   * 트랜잭션은 END 마커를 파싱한 순간 resolve되지만 셸의 후행 프롬프트는
-   * 그보다 수십 ms 뒤에 도착한다. 표시 게이트를 열기 전에 이걸 흘려보내지 않으면
-   * 직전 명령의 프롬프트가 화면에 남아 프롬프트가 두 줄로 보인다.
+   * 직전 명령의 후행 프롬프트가 도착할 때까지 기다린다 (표시 게이트를 열기 전 호출).
+   *
+   * 트랜잭션은 END 마커 라인을 파싱한 순간 resolve되지만 셸의 프롬프트는 그 뒤에
+   * 온다. 도착 지연은 게스트 부하에 따라 10ms~수백 ms로 크게 흔들리므로 고정 대기로는
+   * 잡을 수 없다. 프롬프트는 개행으로 끝나지 않아 라인 조립기의 '미완성 라인'에
+   * 남는다는 성질을 신호로 삼으면 타이밍과 무관하게 확정적으로 판정할 수 있다.
+   * (이걸 흘려보내지 않고 게이트를 열면 그 프롬프트 + 우리가 보내는 개행의 프롬프트가
+   *  겹쳐 명령 시작줄이 두 줄로 보인다.)
    */
-  async waitQuiet(quietMs = 150, timeoutMs = 1500): Promise<void> {
+  async waitPrompt(timeoutMs = 3000): Promise<boolean> {
     const start = Date.now();
     while (Date.now() - start < timeoutMs) {
-      const idle = Date.now() - this.lastOutputAt;
-      if (idle >= quietMs) return;
-      await sleep(Math.min(quietMs - idle, 50));
+      if (/[#$%>]\s*$/.test(this.assembler.getPartial())) return true;
+      await sleep(20);
     }
+    return false; // 타임아웃이어도 진행 — 최악의 경우 프롬프트가 한 줄 더 보일 뿐
   }
 
   async probe(timeoutMs = 1500): Promise<boolean> {
