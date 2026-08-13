@@ -67,9 +67,12 @@ export function endRegex(nonce: string): RegExp {
  * stdout+stderr와 종료 코드를 마커 사이에 실어 보내는 한 줄을 만든다.
  */
 export function buildTransactionCommand(cmd: string, nonce: string): string {
-  const body = cmd.trim().replace(/[;\s]+$/, "");
+  let body = cmd.trim();
+  // 백그라운드 실행(&)으로 끝나면 &가 구분자 역할을 하므로 ;를 붙이면 구문 오류
+  const bg = body.endsWith("&");
+  if (!bg) body = body.replace(/[;\s]+$/, "");
   return (
-    `{ ${body} ; } >/tmp/.__g 2>&1; __r=$?; ` +
+    `{ ${body}${bg ? " " : " ; "}} >/tmp/.__g 2>&1; __r=$?; ` +
     `echo "@@""B:${nonce}"; cat /tmp/.__g; rm -f /tmp/.__g; ` +
     `echo "@@""E:${nonce}:$__r"`
   );

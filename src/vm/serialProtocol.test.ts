@@ -81,6 +81,12 @@ describe("transaction protocol", () => {
     expect(line).toContain("{ echo hi ; }");
   });
 
+  it("백그라운드 명령(&)에는 ;를 붙이지 않는다", () => {
+    const line = buildTransactionCommand("./task.sh > t.log 2>&1 &", "n0n0n0n0");
+    expect(line).toContain("{ ./task.sh > t.log 2>&1 & }");
+    expect(line).not.toContain("& ; }");
+  });
+
   it("nonce는 8자 영숫자", () => {
     for (let i = 0; i < 20; i++) {
       expect(makeNonce()).toMatch(/^[a-z0-9]{8}$/);
