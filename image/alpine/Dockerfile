@@ -16,6 +16,8 @@ RUN if [ "$WITH_NM" = "1" ]; then mkdir -p /etc/NetworkManager/conf.d \
 
 RUN sed -i 's/getty 38400 tty1/agetty --autologin root tty1 linux/' /etc/inittab
 RUN echo 'ttyS0::respawn:/sbin/agetty --autologin root -s ttyS0 115200 vt100' >> /etc/inittab
+# 듀얼 터미널: 두 번째 시리얼 콘솔 (v86 uart1)
+RUN echo 'ttyS1::respawn:/sbin/agetty --autologin root -s ttyS1 115200 vt100' >> /etc/inittab
 RUN echo "root:" | chpasswd
 
 RUN setup-hostname localhost

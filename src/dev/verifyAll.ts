@@ -2,10 +2,16 @@
 // window.__cbt.verifyAll() 로 호출 (dev 또는 ?debug 빌드).
 import { findProblem, problems } from "../problems";
 import { problemSession } from "../engine/session";
-import { serialBus } from "../vm/serialBus";
+import { serialChannels } from "../vm/serialBus";
 import { vmService } from "../vm/vmService";
 import { resetProgress } from "../store/progress";
-import type { Problem } from "../engine/types";
+import type { AnswerStep, Problem } from "../engine/types";
+
+function stepChannel(step: AnswerStep) {
+  const s = typeof step === "string" ? { on: "a" as const, cmd: step } : step;
+  const ch = s.on === "b" ? serialChannels.b0 : s.on === "t2" ? serialChannels.a1 : serialChannels.a0;
+  return { ch, cmd: s.cmd, on: s.on };
+}
 
 async function verifyOne(problem: Problem): Promise<string> {
   if (!problem.verify?.answer?.length) return `${problem.id}: SKIP (verify.answer 없음)`;
@@ -20,9 +26,10 @@ async function verifyOne(problem: Problem): Promise<string> {
   s = problemSession.store.get();
   if (!s.report || s.report.passed) return `${problem.id}: FAIL@initial-must-fail`;
 
-  for (const cmd of problem.verify.answer) {
-    const r = await serialBus.runTransaction(cmd, { timeoutMs: 15_000 });
-    if (r.timedOut) return `${problem.id}: FAIL@answer-timeout (${cmd})`;
+  for (const step of problem.verify.answer) {
+    const { ch, cmd, on } = stepChannel(step);
+    const r = await ch.runTransaction(cmd, { timeoutMs: 15_000 });
+    if (r.timedOut) return `${problem.id}: FAIL@answer-timeout (${on}: ${cmd})`;
   }
 
   await problemSession.grade(problem);

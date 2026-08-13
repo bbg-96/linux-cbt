@@ -13,12 +13,13 @@ export function SolvePage() {
   const { id } = useParams();
   const problem = id ? findProblem(id) : undefined;
   const vm = useStore(vmService.store);
+  const bVm = useStore(vmService.bStore);
   const session = useStore(problemSession.store);
 
   useEffect(() => {
     if (!problem || vm.phase !== "ready") return;
     if (problemSession.needsSeed(problem)) void problemSession.seed(problem);
-  }, [problem, vm.phase, vm.generation]);
+  }, [problem, vm.phase, vm.generation, bVm.phase, bVm.generation]);
 
   useEffect(() => {
     return () => problemSession.leave();
@@ -35,7 +36,10 @@ export function SolvePage() {
     );
   }
 
-  const locked = vm.phase !== "ready" || session.phase === "seeding" || session.phase === "grading" || session.phase === "error";
+  const twoTerms = (problem.terminals ?? 1) === 2;
+  const twoVms = (problem.vms ?? 1) === 2;
+  const locked =
+    vm.phase !== "ready" || session.phase === "seeding" || session.phase === "grading" || session.phase === "error";
 
   let overlay;
   if (vm.phase !== "ready") {
@@ -63,6 +67,18 @@ export function SolvePage() {
     );
   }
 
+  // Host B 패널 전용 오버레이 (부팅 진행/오류는 B 스토어 기준)
+  const bOverlay =
+    bVm.phase !== "ready" ? (
+      <BootOverlay
+        store={vmService.bStore}
+        text="두 번째 VM(Host B) 부팅 중… (최초 1회)"
+        onRestart={() => void vmService.restartB()}
+      />
+    ) : (
+      overlay
+    );
+
   return (
     <div className="solve-page">
       <div className="solve-left">
@@ -75,7 +91,29 @@ export function SolvePage() {
         <GradingPanel problem={problem} />
       </div>
       <div className="solve-right">
-        <TerminalPanel locked={locked} overlay={overlay} />
+        {twoTerms ? (
+          <div className="term-stack">
+            <TerminalPanel channel="a0" title="터미널 ① — 명령 실행" locked={locked} overlay={overlay} />
+            <TerminalPanel channel="a1" title="터미널 ② — 실시간 관찰" locked={locked} overlay={overlay} />
+          </div>
+        ) : twoVms ? (
+          <div className="term-stack">
+            <TerminalPanel channel="a0" title="Host A" locked={locked} overlay={overlay} />
+            <TerminalPanel
+              channel="b0"
+              title="Host B"
+              titleExtra={
+                <button className="btn-link" onClick={() => void vmService.restartB()}>
+                  VM B 재시작
+                </button>
+              }
+              locked={locked || bVm.phase !== "ready"}
+              overlay={bOverlay}
+            />
+          </div>
+        ) : (
+          <TerminalPanel locked={locked} overlay={overlay} />
+        )}
       </div>
     </div>
   );

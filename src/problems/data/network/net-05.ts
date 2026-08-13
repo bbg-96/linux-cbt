@@ -4,46 +4,53 @@ import { NET_RESET } from "./shared";
 export const net05 = {
   id: "net-05",
   category: "network",
-  title: "tcpdump로 패킷 캡처하기",
+  title: "tcpdump 실시간 패킷 관찰",
   difficulty: 3,
+  terminals: 2,
   scenario:
-    "네트워크 문제를 눈으로 확인하는 최종 병기는 패킷 캡처입니다.\n" +
-    "루프백(lo)에서 ICMP 패킷을 캡처 파일로 남기고 판독하는 훈련을 합니다. " +
-    "캡처는 백그라운드로 걸어 두고, 직접 ping 트래픽을 만들어서 잡아냅니다.",
+    "실무에서 패킷 확인은 창 두 개로 합니다 — 한쪽에서 트래픽을 만들고, " +
+    "다른 쪽에서 tcpdump 로 실시간으로 흘러가는 패킷을 지켜봅니다.\n" +
+    "아래에 같은 서버의 터미널이 두 개 있습니다. 터미널 ②에 tcpdump 를 켜 두고, " +
+    "터미널 ①에서 ping 을 보내면서 패킷이 실제로 잡히는 것을 눈으로 확인하세요.",
   objectives: [
-    "tcpdump 를 백그라운드로 실행해 lo 인터페이스의 icmp 패킷 4개를 /root/work/cap.pcap 에 캡처하세요 (-i, -c, -w).",
-    "ping -c 3 127.0.0.1 로 트래픽을 발생시키세요.",
-    "tcpdump -r 로 캡처 파일을 읽어 ICMP echo 패킷이 잡혔는지 확인하세요.",
+    "터미널 ②에서 tcpdump -i lo -n icmp 를 실행해 두세요 (종료하지 말 것 — 채점도 실행 중인 상태에서).",
+    "터미널 ①에서 ping -c 3 127.0.0.1 을 실행하고, 터미널 ②에 echo request/reply 가 찍히는 것을 관찰하세요.",
+    "터미널 ①에서 ping 결과 요약을 저장하세요: ping -c 3 127.0.0.1 | tail -2 > /root/work/ping.txt",
   ],
   setup: [...NET_RESET],
   checks: [
-    { id: "c1", type: "file_exists", path: "/root/work/cap.pcap", label: "캡처 파일이 생성됐는가" },
+    {
+      id: "c1",
+      type: "command",
+      cmd: "pgrep -f 'tcpdump -i lo' >/dev/null",
+      label: "터미널 ②에서 tcpdump가 실행 중인가",
+    },
     {
       id: "c2",
-      type: "command",
-      cmd: "tcpdump -nn -r /root/work/cap.pcap 2>/dev/null | grep -qi 'ICMP echo'",
-      timeoutMs: 8000,
-      label: "캡처 안에 ICMP echo 패킷이 있는가",
+      type: "file_content",
+      path: "/root/work/ping.txt",
+      expect: { includes: "0% packet loss" },
+      label: "ping 결과가 기록되고 손실이 없는가",
     },
   ],
   hints: [
-    "캡처 걸기: tcpdump -i lo -c 4 -w /root/work/cap.pcap icmp &  (-c 4: 4개 잡으면 자동 종료)",
-    "그다음 ping -c 3 127.0.0.1 로 트래픽을 만들고, tcpdump -nn -r /root/work/cap.pcap 으로 판독하세요.",
+    "터미널 ②: tcpdump -i lo -n icmp  (-i 인터페이스, -n 이름 해석 끔, icmp 는 캡처 필터). Ctrl+C 로 끄지 말고 그대로 두세요.",
+    "터미널 ①: ping -c 3 127.0.0.1 | tail -2 > /root/work/ping.txt — 실행 순간 터미널 ②에 패킷이 찍히는 걸 보세요.",
   ],
   explanation:
     "정답 순서:\n" +
-    "tcpdump -i lo -c 4 -w /root/work/cap.pcap icmp &\n" +
-    "ping -c 3 127.0.0.1\n" +
-    "tcpdump -nn -r /root/work/cap.pcap\n\n" +
-    "옵션 해부: -i(인터페이스) -c(N개 잡으면 종료 — 없으면 Ctrl+C까지 계속) " +
-    "-w(원시 패킷을 pcap 파일로 저장) / -r(저장된 파일 판독) -nn(이름 해석 끄고 숫자로).\n" +
-    "마지막의 icmp 는 캡처 필터(BPF)입니다 — 'port 80', 'host 10.0.0.5' 처럼 조건을 걸어 " +
-    "필요한 패킷만 잡는 것이 tcpdump 활용의 핵심입니다.\n" +
-    "-w 로 남긴 pcap 파일은 Wireshark 에서도 열립니다. 서버에서 캡처하고 " +
-    "PC에서 분석하는 것이 실무의 일반적인 흐름입니다.",
+    "[터미널 ②] tcpdump -i lo -n icmp     # 실시간 관찰 시작 (포그라운드 유지)\n" +
+    "[터미널 ①] ping -c 3 127.0.0.1 | tail -2 > /root/work/ping.txt\n\n" +
+    "터미널 ②에는 ping 한 번마다 ICMP echo request 와 echo reply 두 줄이 실시간으로 " +
+    "찍힙니다 — 요청과 응답이 별개의 패킷이라는 것을 눈으로 확인하는 것이 핵심입니다.\n" +
+    "이 두-창 패턴(한쪽 재현, 한쪽 관찰)은 방화벽 디버깅, 서비스 연결 추적 등 " +
+    "실무 네트워크 조사에서 가장 기본이 되는 작업 방식입니다.\n" +
+    "관찰을 마치면 Ctrl+C 로 tcpdump 를 종료합니다. 파일로 남기고 싶을 때는 " +
+    "-w 캡처.pcap 옵션을 쓰고 tcpdump -r 로 다시 읽습니다.",
   verify: {
     answer: [
-      "cd /root/work; tcpdump -i lo -c 4 -w cap.pcap icmp 2>/dev/null & sleep 1; ping -c 3 127.0.0.1 >/dev/null 2>&1; sleep 1",
+      { on: "t2", cmd: "tcpdump -i lo -n icmp >/dev/null 2>&1 &" },
+      { on: "a", cmd: "sleep 1; ping -c 3 127.0.0.1 | tail -2 > /root/work/ping.txt" },
     ],
   },
 } satisfies Problem;

@@ -34,10 +34,16 @@ export interface BuildOptionsArgs {
   paths: VmImagePaths;
   /** manifest.hasState가 참일 때만 true — 스냅숏에서 즉시 복원 */
   useState: boolean;
+  /**
+   * a = 메인 VM, b = 양단 문제용 두 번째 VM.
+   * 현재 두 역할의 옵션은 동일하다 (같은 스냅숏 재사용을 위해 반드시 동일해야 함).
+   * B의 fetch 릴레이는 생성 후 netBridge.muteRelay로 무력화한다.
+   */
+  role?: "a" | "b";
 }
 
 /** V86Options 형태의 객체를 만든다 (v86 타입은 호출부에서 캐스팅). */
-export function buildV86Options({ kind, paths, useState }: BuildOptionsArgs): Record<string, unknown> {
+export function buildV86Options({ kind, paths, useState, role = "a" }: BuildOptionsArgs): Record<string, unknown> {
   const common = {
     wasm_path: paths.wasm,
     bios: { url: paths.seabios },
@@ -60,13 +66,17 @@ export function buildV86Options({ kind, paths, useState }: BuildOptionsArgs): Re
     ...common,
     memory_size: 512 * 1024 * 1024,
     vga_memory_size: 8 * 1024 * 1024,
+    // !! scripts/build-state.mjs와 반드시 동일해야 함 (스냅숏 복원 호환) !!
+    uart1: true,
     filesystem: {
       baseurl: paths.alpineRootfsBase,
       basefs: paths.alpineFsJson,
     },
     bzimage_initrd_from_filesystem: true,
     cmdline: ALPINE_CMDLINE,
-    net_device: { type: "virtio", relay_url: "fetch" },
+    // B는 릴레이 없이 순수 virtio NIC만 (장치 구성은 동일해 같은 스냅숏 복원 가능).
+    // 릴레이(JS 어댑터)는 게스트 간 TCP에 위조 RST를 주입하므로 B에서는 아예 제거한다.
+    net_device: role === "b" ? { type: "virtio" } : { type: "virtio", relay_url: "fetch" },
     ...(useState ? { initial_state: { url: paths.alpineState } } : {}),
   };
 }

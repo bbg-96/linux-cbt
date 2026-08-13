@@ -13,6 +13,8 @@ interface CheckBase {
   /** 채점 결과에 표시되는 한글 설명, 예: "backup.sh에 실행 권한이 있는가" */
   label: string;
   timeoutMs?: number;
+  /** 검사를 실행할 호스트 (기본 "a"; "b"는 vms:2 문제 전용) */
+  on?: "a" | "b";
 }
 
 export interface ExpectSpec {
@@ -51,11 +53,18 @@ export interface FileContentCheck extends CheckBase {
 
 export type Check = CommandCheck | FileExistsCheck | FileModeCheck | FileContentCheck;
 
+/** 검증용 모범답안 한 스텝 — 문자열은 Host A(a0)에서 실행 */
+export type AnswerStep = string | { on: "a" | "b" | "t2"; cmd: string };
+
 export interface Problem {
   id: string;
   category: CategoryId;
   title: string;
   difficulty: 1 | 2 | 3;
+  /** 메인 VM의 터미널 수 (2면 ttyS1 터미널②가 추가 표시; vms:2와 동시 사용 불가) */
+  terminals?: 1 | 2;
+  /** 2면 Host B(두 번째 VM)가 추가되고 L2 브리지로 연결된다 */
+  vms?: 1 | 2;
   /** 상황 제시 (한글, pre-line 렌더링) */
   scenario: string;
   /** 달성 목표 목록 */
@@ -66,6 +75,8 @@ export interface Problem {
   setup?: string[];
   /** setup 각 줄의 타임아웃 (기본 10초; NetworkManager 기동 등 느린 셋업용) */
   setupTimeoutMs?: number;
+  /** vms:2 전용 — Host B(b0)에서 실행되는 셋업 (A 셋업 이후 실행) */
+  setupB?: string[];
   /** 전부 통과해야 해결 */
   checks: Check[];
   /** 단계적으로 공개되는 힌트 */
@@ -76,7 +87,7 @@ export interface Problem {
    * 자동 검증용 모범답안 명령 (dev 회귀 하네스 __cbt.verifyAll 전용).
    * 정답은 explanation에 이미 공개되어 있으므로 비밀 유출이 아니다.
    */
-  verify?: { answer: string[] };
+  verify?: { answer: AnswerStep[] };
 }
 
 export type CheckStatus = "pass" | "fail" | "timeout" | "error";
