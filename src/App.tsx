@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Link, Route, Routes } from "react-router-dom";
 import { vmService } from "./vm/vmService";
 import { ProblemListPage } from "./pages/ProblemListPage";
+import { SolvePage } from "./pages/SolvePage";
 import { TerminalPage } from "./pages/TerminalPage";
 
 export default function App() {
@@ -23,6 +24,7 @@ export default function App() {
       <main className="app-main">
         <Routes>
           <Route path="/" element={<ProblemListPage />} />
+          <Route path="/p/:id" element={<SolvePage />} />
           <Route path="/terminal" element={<TerminalPage />} />
         </Routes>
       </main>

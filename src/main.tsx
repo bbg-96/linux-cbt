@@ -6,10 +6,18 @@ import "./index.css";
 import { serialBus } from "./vm/serialBus";
 import { vmService } from "./vm/vmService";
 import { terminalService } from "./terminal/terminalService";
+import { problemSession } from "./engine/session";
+import { progressStore } from "./store/progress";
 
 if (import.meta.env.DEV) {
   // 개발 콘솔에서 시리얼 프로토콜을 직접 검증하기 위한 훅
-  (window as unknown as Record<string, unknown>).__cbt = { serialBus, vmService, terminalService };
+  (window as unknown as Record<string, unknown>).__cbt = {
+    serialBus,
+    vmService,
+    terminalService,
+    problemSession,
+    progressStore,
+  };
 }
 
 createRoot(document.getElementById("root")!).render(

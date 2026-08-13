@@ -227,3 +227,316 @@ body {
   margin: 0 auto;
   padding: 28px 20px;
 }
+
+.list-head {
+  margin-bottom: 20px;
+}
+
+.list-head h1 {
+  margin: 0 0 4px;
+  font-size: 24px;
+}
+
+.cat-section {
+  margin-bottom: 28px;
+}
+
+.cat-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.cat-head h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.problem-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.problem-card {
+  display: block;
+  padding: 14px 16px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--text);
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+.problem-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.problem-card h3 {
+  margin: 8px 0 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.difficulty {
+  color: var(--yellow);
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+
+.badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+}
+
+.badge-none {
+  color: var(--text-muted);
+}
+
+.badge-attempted {
+  color: var(--yellow);
+  border-color: var(--yellow);
+}
+
+.badge-solved {
+  color: var(--green);
+  border-color: var(--green);
+}
+
+/* ---- 풀이 화면 ---- */
+
+.solve-page {
+  display: flex;
+  gap: 16px;
+  height: 100%;
+  padding: 16px 20px 20px;
+}
+
+.solve-left {
+  width: 42%;
+  min-width: 340px;
+  max-width: 560px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-right: 4px;
+}
+
+.solve-right {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+}
+
+.solve-right .term-shell {
+  flex: 1;
+}
+
+.solve-nav {
+  flex: 0 0 auto;
+}
+
+.panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px;
+}
+
+.problem-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.cat-tag {
+  font-size: 12px;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  padding: 1px 10px;
+}
+
+.problem-title {
+  margin: 4px 0 10px;
+  font-size: 20px;
+}
+
+.scenario-text {
+  white-space: pre-line;
+  margin: 0 0 6px;
+}
+
+.sub-heading {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 14px 0 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.objective-list {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.objective-list li {
+  margin-bottom: 4px;
+}
+
+.hint-box {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.hint-item {
+  margin: 0;
+  padding: 8px 12px;
+  background: var(--bg-raised);
+  border-left: 3px solid var(--yellow);
+  border-radius: 0 6px 6px 0;
+  font-size: 14px;
+}
+
+.btn-sm {
+  padding: 4px 10px;
+  font-size: 13px;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.btn-link:hover {
+  color: var(--text);
+}
+
+.explanation {
+  margin-top: 14px;
+  border-top: 1px solid var(--border);
+  padding-top: 4px;
+}
+
+.explanation-text {
+  white-space: pre-wrap;
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 13px;
+  background: var(--bg-raised);
+  border-radius: 8px;
+  padding: 12px;
+  line-height: 1.6;
+  overflow-x: auto;
+}
+
+.grade-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.grade-banner {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.grade-pass {
+  background: rgba(63, 185, 80, 0.12);
+  border: 1px solid var(--green);
+}
+
+.grade-fail {
+  background: rgba(210, 153, 34, 0.1);
+  border: 1px solid var(--yellow);
+}
+
+.check-list {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.check-row {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.check-line {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.check-icon {
+  font-weight: 700;
+  width: 18px;
+  text-align: center;
+}
+
+.check-pass .check-icon {
+  color: var(--green);
+}
+
+.check-fail .check-icon,
+.check-error .check-icon {
+  color: var(--red);
+}
+
+.check-timeout .check-icon {
+  color: var(--yellow);
+}
+
+.check-label {
+  font-size: 14px;
+}
+
+.check-detail {
+  margin: 6px 0 0 28px;
+  font-size: 13px;
+  color: var(--red);
+}
+
+.check-output {
+  margin: 6px 0 0 28px;
+  font-size: 12px;
+}
+
+.check-output summary {
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.check-output pre {
+  background: var(--bg-raised);
+  padding: 8px 10px;
+  border-radius: 6px;
+  overflow-x: auto;
+  max-height: 200px;
+  overflow-y: auto;
+  margin: 6px 0 0;
+}
