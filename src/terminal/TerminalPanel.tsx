@@ -1,5 +1,7 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { terminals } from "./terminalService";
+import { KeyBar } from "./KeyBar";
+import { TOUCH_QUERY, useMediaQuery } from "../lib/useMediaQuery";
 import type { ChannelId } from "../vm/serialBus";
 
 interface Props {
@@ -13,6 +15,7 @@ interface Props {
 
 export function TerminalPanel({ locked, overlay, channel = "a0", title, titleExtra }: Props) {
   const hostRef = useRef<HTMLDivElement>(null);
+  const isTouch = useMediaQuery(TOUCH_QUERY);
 
   useEffect(() => {
     const el = hostRef.current;
@@ -31,15 +34,20 @@ export function TerminalPanel({ locked, overlay, channel = "a0", title, titleExt
     };
   }, [channel]);
 
+  const showBar = Boolean(title) || isTouch;
+
   return (
     <div className="term-shell">
-      {title && (
+      {showBar && (
         <div className="term-title">
-          <span>{title}</span>
-          {titleExtra}
+          <span className="term-title-text">{title}</span>
+          <span className="term-title-right">
+            {isTouch && <KeyBar channel={channel} />}
+            {titleExtra}
+          </span>
         </div>
       )}
-      <div className={`term-host ${title ? "term-host-titled" : ""}`} ref={hostRef} />
+      <div className={`term-host ${showBar ? "term-host-titled" : ""}`} ref={hostRef} />
       {locked && <div className="term-overlay">{overlay}</div>}
     </div>
   );

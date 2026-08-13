@@ -99,6 +99,9 @@ class VmInstance {
       }
     }
     this.term.resetScreen();
+    // stale 'ready'로 ensureReady가 조기 반환하지 않도록 상태·진행 중 부팅을 리셋
+    this.bootingPromise = null;
+    this.store.set({ phase: "idle" });
     await this.ensureReady();
   }
 

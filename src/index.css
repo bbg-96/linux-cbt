@@ -23,6 +23,10 @@ body,
   margin: 0;
 }
 
+#root {
+  height: 100dvh; /* 모바일 주소창 수축·키보드 리사이즈 대응 (미지원 브라우저는 위 100%) */
+}
+
 body {
   background: var(--bg);
   color: var(--text);
@@ -208,6 +212,124 @@ body {
   border-radius: 8px;
 }
 
+/* ---- 모바일 (≤768px) ---- */
+
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  top: 52px;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 40;
+}
+
+.solve-actionbar {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .app-header {
+    padding: 0 12px;
+    gap: 12px;
+  }
+
+  /* 사이드바 → 오버레이 드로어 */
+  .sidebar {
+    position: fixed;
+    top: 52px;
+    left: 0;
+    bottom: 0;
+    width: min(300px, 82vw);
+    z-index: 50;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5);
+  }
+
+  .dash-page,
+  .list-page {
+    padding: 16px 12px;
+  }
+
+  .dash-hero {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+    padding: 18px;
+  }
+
+  .btn-lg {
+    align-items: center;
+  }
+
+  .cat-page-head {
+    gap: 12px;
+  }
+
+  /* 풀이 화면 */
+  .solve-page {
+    padding: 8px 8px 0;
+    gap: 8px;
+  }
+
+  .solve-topbar {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .topbar-title {
+    order: 3;
+    flex-basis: 100%;
+    font-size: 13px;
+  }
+
+  .solve-body-mobile {
+    flex-direction: column;
+  }
+
+  .solve-body-mobile .solve-left {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    padding-right: 0;
+  }
+
+  .solve-body-mobile .solve-right {
+    min-height: 0;
+  }
+
+  .term-stack {
+    gap: 6px;
+  }
+
+  .term-shell {
+    min-height: 120px;
+  }
+
+  .term-host {
+    margin: 4px;
+  }
+
+  /* 하단 고정 액션바 */
+  .solve-actionbar {
+    display: flex;
+    gap: 8px;
+    flex: 0 0 auto;
+    padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+  }
+
+  .solve-actionbar .btn {
+    flex: 1;
+  }
+
+  .grade-actions {
+    flex-wrap: wrap;
+  }
+
+  .problem-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ---- 공용 ---- */
 
 .btn {
@@ -309,12 +431,51 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
   padding: 4px 12px;
   background: var(--bg-raised);
   border-bottom: 1px solid var(--border);
   font-size: 12px;
   color: var(--text-muted);
   z-index: 5;
+  min-height: 30px;
+}
+
+.term-title-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.term-title-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+/* ---- 모바일 특수키 툴바 ---- */
+
+.keybar {
+  display: flex;
+  gap: 4px;
+}
+
+.keybar-btn {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text);
+  font-size: 11px;
+  font-family: "Cascadia Mono", Consolas, monospace;
+  padding: 3px 8px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.keybar-btn:active {
+  background: var(--accent);
+  color: #08131f;
 }
 
 .term-host {

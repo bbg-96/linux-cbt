@@ -1,20 +1,27 @@
 import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { CatalogSidebar } from "./CatalogSidebar";
+import { MOBILE_QUERY, useMediaQuery } from "../lib/useMediaQuery";
 
 /**
  * 헤더 + 접이식 카탈로그 사이드바 + 메인(<Outlet/>).
- * 풀이 화면(/p/*) 진입 시 자동으로 접고, 탐색 화면 복귀 시 자동으로 편다.
- * 수동 토글(☰)은 다음 화면 유형 전환 전까지 우선한다.
+ * 데스크톱: 풀이 화면(/p/*) 진입 시 자동으로 접고, 탐색 화면 복귀 시 자동으로 편다.
+ * 모바일: 오버레이 드로어 — 기본 닫힘, 이동할 때마다 닫힘, 백드롭 탭으로 닫기.
  */
 export function CatalogLayout() {
   const location = useLocation();
+  const isMobile = useMediaQuery(MOBILE_QUERY);
   const isSolve = location.pathname.startsWith("/p/");
-  const [open, setOpen] = useState(!isSolve);
+  const [open, setOpen] = useState(!isSolve && !isMobile);
 
   useEffect(() => {
-    setOpen(!isSolve);
-  }, [isSolve]);
+    setOpen(isMobile ? false : !isSolve);
+  }, [isSolve, isMobile]);
+
+  // 모바일: 라우트가 바뀌면(트리에서 이동) 드로어를 닫는다
+  useEffect(() => {
+    if (isMobile) setOpen(false);
+  }, [location.pathname, isMobile]);
 
   return (
     <div className="app">
@@ -30,6 +37,7 @@ export function CatalogLayout() {
         </nav>
       </header>
       <div className="app-body">
+        {open && isMobile && <div className="sidebar-backdrop" onClick={() => setOpen(false)} />}
         {open && <CatalogSidebar />}
         <main className="app-main">
           <Outlet />
