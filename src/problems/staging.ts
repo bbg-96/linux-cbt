@@ -1,25 +1,18 @@
 import type { Problem } from "../engine/types";
-import { TRIAGE_PROBLEMS } from "./data/cloud/triage";
-import { SERVICE_PROBLEMS } from "./data/cloud/service";
-import { NETWORK_PROBLEMS } from "./data/cloud/network";
-import { STORAGE_PROBLEMS } from "./data/cloud/storage";
-import { SECURITY_PROBLEMS } from "./data/cloud/security";
-import { AUTOMATION_PROBLEMS } from "./data/cloud/automation";
 
 /**
  * 스테이징 사이트(https://bbg-96.github.io/linux-cbt-staging/)에 등록할 문제.
  *
- * 클라우드 운영 실무 트랙 31문제 — 초동 점검 → 서비스/로그 → 네트워크 → 스토리지
- * → 보안 증적 → 자동화 순서로, 실제 장애 대응 흐름을 따라간다.
- * 운영 사이트는 all.ts(기초 문법 30문제)를 쓰므로 이 목록의 영향을 받지 않는다.
+ * 지금은 비어 있다 — 선별한 문제만 담는 목록이다.
  *
- * 배열 순서가 곧 커리큘럼 순서다(이어서 풀기·이전/다음이 이 순서를 따른다).
+ * 클라우드 실무 트랙 31문제는 `data/cloud/*.ts`에 그대로 남아 있다(전 문제
+ * 실VM 회귀 통과 상태). 다시 올리려면 필요한 만큼 골라 담으면 된다:
+ *
+ *   import { TRIAGE_PROBLEMS } from "./data/cloud/triage";
+ *   export const STAGING_PROBLEMS: Problem[] = [...TRIAGE_PROBLEMS];
+ *
+ * 기초 트랙에서 골라 담아도 되고(`import { perm01 } from "./data/permissions/perm-01"`),
+ * 새 문제 모듈을 만들어 넣어도 된다. 배열 순서가 곧 커리큘럼 순서다.
+ * 운영 사이트는 all.ts의 ALL_PROBLEMS를 쓰므로 이 파일의 영향을 받지 않는다.
  */
-export const STAGING_PROBLEMS: Problem[] = [
-  ...TRIAGE_PROBLEMS,
-  ...SERVICE_PROBLEMS,
-  ...NETWORK_PROBLEMS,
-  ...STORAGE_PROBLEMS,
-  ...SECURITY_PROBLEMS,
-  ...AUTOMATION_PROBLEMS,
-];
+export const STAGING_PROBLEMS: Problem[] = [];
