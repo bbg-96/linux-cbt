@@ -1,18 +1,19 @@
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import "@xterm/xterm/css/xterm.css";
-import { serialBus } from "../vm/serialBus";
+import { serialChannels, type ChannelId } from "../vm/serialBus";
+import type { SerialChannel } from "../vm/serialChannel";
 
 /**
- * xterm 인스턴스는 앱 수명 동안 딱 하나. React 밖에서 생성해
+ * xterm 인스턴스는 채널당 딱 하나. React 밖에서 생성해
  * 라우트 이동/StrictMode 이중 마운트에도 스크롤백이 유지된다.
  */
-class TerminalService {
+export class TerminalInstance {
   readonly term: Terminal;
   private fit = new FitAddon();
   private opened = false;
 
-  constructor() {
+  constructor(channel: SerialChannel) {
     this.term = new Terminal({
       fontSize: 14,
       fontFamily: "'Cascadia Mono', Consolas, 'Courier New', monospace",
@@ -28,8 +29,8 @@ class TerminalService {
       },
     });
     this.term.loadAddon(this.fit);
-    this.term.onData((d) => serialBus.userInput(d));
-    serialBus.onDisplay((chunk) => this.term.write(chunk));
+    this.term.onData((d) => channel.userInput(d));
+    channel.onDisplay((chunk) => this.term.write(chunk));
   }
 
   attachTo(el: HTMLElement): void {
@@ -65,4 +66,11 @@ class TerminalService {
   }
 }
 
-export const terminalService = new TerminalService();
+export const terminals: Record<ChannelId, TerminalInstance> = {
+  a0: new TerminalInstance(serialChannels.a0),
+  a1: new TerminalInstance(serialChannels.a1),
+  b0: new TerminalInstance(serialChannels.b0),
+};
+
+/** 호환 별칭 — 메인 터미널(①). */
+export const terminalService = terminals.a0;

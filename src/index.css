@@ -163,16 +163,41 @@ body {
 .term-shell {
   position: relative;
   flex: 1;
-  min-height: 240px;
+  min-height: 140px;
   background: #0d1117;
   border: 1px solid var(--border);
   border-radius: 8px;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.term-title {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 12px;
+  background: var(--bg-raised);
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-muted);
+  z-index: 5;
 }
 
 .term-host {
-  position: absolute;
-  inset: 8px;
+  flex: 1;
+  min-height: 0;
+  margin: 8px;
+  position: relative;
+}
+
+.term-stack {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .term-overlay {
