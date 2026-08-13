@@ -70,10 +70,142 @@ body {
   color: var(--text);
 }
 
-.app-main {
+.app-body {
   flex: 1;
   min-height: 0;
+  display: flex;
+}
+
+.app-main {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
   overflow: auto;
+}
+
+/* ---- 카탈로그 사이드바 ---- */
+
+.hamburger {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 15px;
+  padding: 3px 10px;
+  cursor: pointer;
+}
+
+.hamburger:hover {
+  border-color: var(--accent);
+}
+
+.sidebar {
+  flex: 0 0 260px;
+  width: 260px;
+  overflow-y: auto;
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border);
+  padding: 12px 8px 20px;
+}
+
+.side-cat {
+  margin-bottom: 2px;
+}
+
+.side-cat-row {
+  display: flex;
+  align-items: center;
+  border-radius: 6px;
+}
+
+.side-cat-row:hover {
+  background: var(--bg-raised);
+}
+
+.side-chevron {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  width: 22px;
+  padding: 6px 0 6px 4px;
+  font-size: 11px;
+}
+
+.side-cat-link {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 8px 6px 2px;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.side-icon {
+  font-size: 15px;
+}
+
+.side-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.side-count {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.side-count-done {
+  color: var(--green);
+}
+
+.side-cmds {
+  margin: 1px 0 4px;
+}
+
+.side-cmd {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px 4px 32px;
+  border-radius: 6px;
+  text-decoration: none;
+  color: var(--text-muted);
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 13px;
+}
+
+.side-cmd:hover {
+  background: var(--bg-raised);
+  color: var(--text);
+}
+
+.side-cmd-name {
+  flex: 1;
+}
+
+.side-active,
+.side-cat-row.side-active {
+  background: rgba(88, 166, 255, 0.12);
+}
+
+.side-active .side-cmd-name,
+.side-active .side-cat-link {
+  color: var(--accent);
+}
+
+.cmd-title {
+  font-family: "Cascadia Mono", Consolas, monospace;
+  background: var(--bg-raised);
+  padding: 2px 10px;
+  border-radius: 8px;
 }
 
 /* ---- 공용 ---- */

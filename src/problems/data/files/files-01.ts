@@ -6,6 +6,7 @@ export const files01 = {
   title: "프로젝트 디렉터리 구조 만들기",
   difficulty: 1,
   tags: ["mkdir -p", "echo >"],
+  commands: ["mkdir", "echo"],
   scenario:
     "새 프로젝트를 시작하게 되었습니다. 팀 규칙에 따라 표준 디렉터리 구조를 만들어야 합니다.\n" +
     "작업 위치는 /root/work 입니다.",

@@ -6,6 +6,7 @@ export const files03 = {
   title: "설정 파일 심볼릭 링크",
   difficulty: 2,
   tags: ["ln -s", "readlink"],
+  commands: ["ln", "readlink"],
   scenario:
     "애플리케이션이 /root/work/current.conf 경로의 설정을 읽도록 되어 있습니다. " +
     "실제 설정 파일은 versions 디렉터리에 버전별로 보관합니다.\n" +

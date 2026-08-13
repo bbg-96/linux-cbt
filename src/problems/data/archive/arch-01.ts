@@ -6,6 +6,7 @@ export const arch01 = {
   title: "보고서 디렉터리 백업",
   difficulty: 1,
   tags: ["tar czf"],
+  commands: ["tar"],
   scenario:
     "분기 보고서가 담긴 reports 디렉터리를 다른 서버로 옮기기 전에 " +
     "하나의 압축 파일로 묶어야 합니다.\n" +

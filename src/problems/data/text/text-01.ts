@@ -6,6 +6,7 @@ export const text01 = {
   title: "에러 로그 추출",
   difficulty: 1,
   tags: ["grep", "리다이렉션"],
+  commands: ["grep"],
   scenario:
     "장애 보고서를 작성해야 합니다. 애플리케이션 로그 /root/work/app.log 에는 " +
     "INFO, WARN, ERROR 레벨의 메시지가 섞여 있습니다.\n" +

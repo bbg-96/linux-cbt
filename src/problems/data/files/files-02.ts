@@ -6,6 +6,7 @@ export const files02 = {
   title: "로그 파일 정리",
   difficulty: 1,
   tags: ["mv", "rm", "*.log"],
+  commands: ["mv", "rm"],
   scenario:
     "서비스 로그 디렉터리가 정리되지 않은 채 방치되어 있습니다. /root/work/logs 안에 " +
     "로그 파일(.log)과 메모, 임시 파일이 섞여 있습니다.\n" +

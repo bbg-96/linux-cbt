@@ -6,6 +6,7 @@ export const proc01 = {
   title: "폭주 프로세스 종료",
   difficulty: 1,
   tags: ["ps", "kill", "killall"],
+  commands: ["ps", "kill", "killall"],
   scenario:
     "누군가 테스트하다 만 스크립트 rogue.sh 가 백그라운드에서 계속 돌고 있습니다. " +
     "서버 점검 전에 이 프로세스를 정리해야 합니다.\n" +

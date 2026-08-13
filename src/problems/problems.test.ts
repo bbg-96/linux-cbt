@@ -42,6 +42,16 @@ describe("문제 스키마 제약", () => {
     }
   });
 
+  it("모든 문제에 카탈로그 트리용 commands가 있다 (1~3개, 단일 토큰)", () => {
+    for (const p of problems) {
+      expect(p.commands?.length, p.id).toBeTruthy();
+      expect(p.commands!.length, p.id).toBeLessThanOrEqual(3);
+      for (const c of p.commands!) {
+        expect(c, `${p.id}/${c}`).toMatch(/^\S+$/);
+      }
+    }
+  });
+
   it("vms:2 문제의 setup/setupB는 MAC_REFRESH(rmmod virtio_net)를 포함한다", () => {
     for (const p of problems) {
       if ((p.vms ?? 1) === 2) {

@@ -6,6 +6,7 @@ export const arch02 = {
   title: "백업 파일 복원",
   difficulty: 2,
   tags: ["tar xzf", "-C", "tar tzf"],
+  commands: ["tar"],
   scenario:
     "이전 담당자가 남긴 backup.tar.gz 파일이 있습니다. 원본 디렉터리는 이미 삭제된 " +
     "상태라 이 아카이브가 유일한 사본입니다.\n" +

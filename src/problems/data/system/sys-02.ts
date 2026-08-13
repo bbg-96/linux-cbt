@@ -6,6 +6,7 @@ export const sys02 = {
   title: "용량 범인 찾기 (du)",
   difficulty: 2,
   tags: ["du -sk", "sort -n"],
+  commands: ["du"],
   scenario:
     "df 로 보니 디스크가 차오르고 있는데, 어느 디렉터리가 원인인지 모릅니다.\n" +
     "/root/work/data 아래 하위 디렉터리별 용량을 조사해서 가장 큰 범인을 찾아내세요.",

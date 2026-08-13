@@ -6,6 +6,7 @@ export const proc03 = {
   title: "죽지 않는 프로세스 강제 종료",
   difficulty: 3,
   tags: ["kill -9", "trap", "SIGKILL"],
+  commands: ["kill", "killall"],
   scenario:
     "stubborn.sh 프로세스가 떠 있는데, kill 로 종료 신호를 보내도 죽지 않습니다. " +
     "이 스크립트는 TERM 신호를 무시하도록 작성되어 있기 때문입니다.\n" +

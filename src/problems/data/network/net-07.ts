@@ -7,6 +7,7 @@ export const net07 = {
   title: "양단 통신 개통과 수신 확인",
   difficulty: 3,
   tags: ["ip addr", "ping", "tcpdump -r"],
+  commands: ["ip", "ping", "tcpdump"],
   vms: 2,
   scenario:
     "진짜 두 대의 서버가 같은 네트워크에 연결되어 있습니다. Host B(아래 터미널)는 " +

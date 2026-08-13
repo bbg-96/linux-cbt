@@ -7,6 +7,7 @@ export const net03 = {
   title: "네트워크 장애 진단 풀코스",
   difficulty: 2,
   tags: ["udhcpc", "ping", "netstat -tln"],
+  commands: ["udhcpc", "ping", "netstat"],
   scenario:
     "\"서버가 안 붙어요\"라는 신고가 들어왔습니다. 진단 순서대로 확인해 보니 " +
     "eth0 는 UP 인데 IP가 없습니다. 이 대역은 DHCP 서버(192.168.86.1)가 주소를 나눠줍니다.\n" +

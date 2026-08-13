@@ -6,6 +6,7 @@ export const search01 = {
   title: "흩어진 로그 파일 찾기",
   difficulty: 1,
   tags: ["find", "-name", "-type f"],
+  commands: ["find"],
   scenario:
     "장애 조사를 위해 app 디렉터리 곳곳에 흩어진 로그 파일(.log)의 전체 목록이 필요합니다. " +
     "하위 디렉터리가 여러 단계라 ls 로는 다 볼 수 없습니다.\n" +

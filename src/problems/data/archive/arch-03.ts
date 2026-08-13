@@ -6,6 +6,7 @@ export const arch03 = {
   title: "대용량 로그 압축",
   difficulty: 1,
   tags: ["gzip", "zcat"],
+  commands: ["gzip", "zcat"],
   scenario:
     "디스크 용량 경고가 떴습니다. 더 이상 쓰지 않는 huge.log 가 공간을 차지하고 있는데, " +
     "감사(audit) 규정 때문에 삭제할 수는 없습니다.\n" +

@@ -7,6 +7,7 @@ export const net01 = {
   title: "인터페이스 살리기",
   difficulty: 1,
   tags: ["ip link", "ip addr"],
+  commands: ["ip", "ifconfig"],
   scenario:
     "새로 받은 서버에 접속했는데 네트워크가 전혀 안 됩니다. 확인해 보니 eth0 인터페이스가 " +
     "비활성(DOWN) 상태이고 IP 주소도 없습니다.\n" +

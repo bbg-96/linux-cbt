@@ -7,6 +7,7 @@ export const net08 = {
   title: "서버-클라이언트: nc로 양단 데이터 전송",
   difficulty: 3,
   tags: ["nc -l", "nc", "파이프"],
+  commands: ["nc"],
   vms: 2,
   scenario:
     "두 서버 간 파일 전송 경로가 뚫려 있는지 점검해야 합니다. 정식 서비스 대신 " +

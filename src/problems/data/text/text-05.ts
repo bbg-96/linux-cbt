@@ -6,6 +6,7 @@ export const text05 = {
   title: "awk로 로그 통계 내기",
   difficulty: 2,
   tags: ["awk", "END", "집계"],
+  commands: ["awk"],
   scenario:
     "어제 배포 이후 오류가 늘었다는 제보가 있습니다. access.log " +
     "('IP 메서드 경로 상태코드 바이트' 형식)를 집계해 두 가지 수치를 보고해야 합니다:\n" +

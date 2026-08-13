@@ -46,11 +46,6 @@ export function CategoryPage() {
 
   return (
     <div className="list-page">
-      <div className="solve-nav">
-        <Link to="/" className="btn-link">
-          ← 대시보드
-        </Link>
-      </div>
       <div className="cat-page-head">
         <span className="cat-icon cat-icon-lg">{category.icon}</span>
         <div className="cat-page-info">

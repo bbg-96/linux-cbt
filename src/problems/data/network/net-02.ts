@@ -7,6 +7,7 @@ export const net02 = {
   title: "기본 게이트웨이가 사라졌다",
   difficulty: 2,
   tags: ["ip route", "route -n", "ping"],
+  commands: ["ip", "route", "ping"],
   scenario:
     "eth0 에 IP(192.168.86.100/24)는 잡혀 있는데 외부로 나가는 통신이 전부 실패합니다.\n" +
     "같은 대역은 되고 다른 대역만 안 될 때 첫 번째 용의자는 라우팅 테이블 — " +
