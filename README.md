@@ -39,6 +39,25 @@ npm run build && npm run preview   # 프로덕션 빌드 확인
 npm test                           # 시리얼 프로토콜 단위 테스트 (vitest)
 ```
 
+## 배포 (GitHub Pages)
+
+정적 사이트라 파일만 올리면 되고, **사용자는 브라우저만 있으면 된다** (WSL·Docker·설치 불필요).
+
+```bash
+npm run build && npm run deploy    # dist → gh-pages 브랜치로 푸시
+```
+
+- 이미지 산출물(`public/vm/alpine/`, 약 70MB)은 **main에 커밋하지 않는다.** `gh-pages`
+  브랜치에만 담기므로 소스 히스토리가 바이너리로 부풀지 않는다. 산출물을 새로 만들려면
+  위의 "VM 이미지 빌드" 절차를 따른다.
+- `base: './'` + HashRouter라 `https://<계정>.github.io/linux-cbt/` 같은 하위 경로에서
+  그대로 동작한다 (하위 경로 서빙으로 검증 완료).
+- `public/.nojekyll`이 있어야 Jekyll이 1700여 개 파일을 건드리지 않는다.
+- 이미지를 재빌드했다면 **반드시 `node scripts/build-state.mjs`로 스냅숏을 다시 만들고**
+  배포한다. 어긋나면 스냅숏 복원이 실패해 콜드 부팅으로 폴백한다(동작은 하되 느려짐).
+- 첫 방문 시 약 25~30MB를 내려받고(스냅숏+커널+실제 접근 파일), 이후는 캐시된다.
+  GitHub Pages 대역폭 소프트 한도는 월 100GB.
+
 ## VM 이미지 빌드 (WSL Ubuntu-24.04 + podman)
 
 `public/vm/alpine/`(fs.json + rootfs-flat + state.bin.zst)은 생성물이라 git에 없다.
