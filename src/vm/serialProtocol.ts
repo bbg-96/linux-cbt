@@ -70,7 +70,14 @@ export function buildTransactionCommand(cmd: string, nonce: string): string {
   let body = cmd.trim();
   // 백그라운드 실행(&)으로 끝나면 &가 구분자 역할을 하므로 ;를 붙이면 구문 오류
   const bg = body.endsWith("&");
-  if (!bg) body = body.replace(/[;\s]+$/, "");
+  if (!bg) {
+    // 후행 세미콜론은 구문 오류(;;)를 막기 위해 정리하되,
+    // find -exec 의 이스케이프된 \; 는 명령 인자이므로 보존한다
+    body = body.replace(/\s+$/, "");
+    while (body.endsWith(";") && !body.endsWith("\\;")) {
+      body = body.slice(0, -1).replace(/\s+$/, "");
+    }
+  }
   return (
     `{ ${body}${bg ? " " : " ; "}} >/tmp/.__g 2>&1; __r=$?; ` +
     `echo "@@""B:${nonce}"; cat /tmp/.__g; rm -f /tmp/.__g; ` +

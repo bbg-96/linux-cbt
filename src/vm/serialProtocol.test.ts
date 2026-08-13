@@ -87,6 +87,16 @@ describe("transaction protocol", () => {
     expect(line).not.toContain("& ; }");
   });
 
+  it("find -exec의 이스케이프된 \\;는 보존한다", () => {
+    const line = buildTransactionCommand("find /d -size +100k -exec mv {} /a/ \\;", "n0n0n0n0");
+    expect(line).toContain("-exec mv {} /a/ \\; ; }");
+  });
+
+  it("이스케이프 세미콜론 뒤의 일반 세미콜론만 정리한다", () => {
+    const line = buildTransactionCommand("find /d -exec rm {} \\; ; ", "n0n0n0n0");
+    expect(line).toContain("-exec rm {} \\; ; }");
+  });
+
   it("nonce는 8자 영숫자", () => {
     for (let i = 0; i < 20; i++) {
       expect(makeNonce()).toMatch(/^[a-z0-9]{8}$/);
