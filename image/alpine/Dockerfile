@@ -8,7 +8,11 @@ ENV ADDPKGS="bash iproute2 net-tools iptables tcpdump ripgrep findutils gawk"
 ARG WITH_NM=0
 
 RUN apk add openrc alpine-base agetty alpine-conf linux-$KERNEL linux-firmware-none $ADDPKGS
-RUN if [ "$WITH_NM" = "1" ]; then apk add dbus networkmanager networkmanager-cli; fi
+# NetworkManager는 장치 관리에 udev 이벤트가 필요하다 (없으면 strictly unmanaged)
+RUN if [ "$WITH_NM" = "1" ]; then apk add dbus networkmanager networkmanager-cli eudev; fi
+# v86 가상 라우터가 광범위하게 ARP 응답을 해 NM의 중복 주소 감지(ACD)가 오탐하므로 비활성화
+RUN if [ "$WITH_NM" = "1" ]; then mkdir -p /etc/NetworkManager/conf.d \
+  && printf '[connection]\nipv4.dad-timeout=0\n' > /etc/NetworkManager/conf.d/90-v86.conf; fi
 
 RUN sed -i 's/getty 38400 tty1/agetty --autologin root tty1 linux/' /etc/inittab
 RUN echo 'ttyS0::respawn:/sbin/agetty --autologin root -s ttyS0 115200 vt100' >> /etc/inittab

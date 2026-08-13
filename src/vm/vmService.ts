@@ -76,21 +76,37 @@ class VmService {
     const base = import.meta.env.BASE_URL;
     const paths = vmPathsFromBase(base);
 
-    let useState = false;
+    let hasState = false;
     if (kind === "alpine") {
       try {
         const res = await fetch(`${base}vm/alpine/manifest.json`, { cache: "no-cache" });
         if (res.ok) {
           const manifest = (await res.json()) as AlpineManifest;
-          useState = manifest.hasState === true;
+          hasState = manifest.hasState === true;
         }
       } catch {
         // manifest 없으면 스냅숏 없이 부팅
       }
     }
-    this.store.set({ fromState: useState });
 
-    const emulator = new V86(buildV86Options({ kind, paths, useState }) as unknown as V86Options);
+    // 스냅숏 복원 실패(이미지-스냅숏 불일치 등) 시 콜드 부팅으로 한 번 더 시도
+    const attempts = hasState ? [true, false] : [false];
+    for (const withState of attempts) {
+      const result = await this.bootOnce(kind, paths, withState);
+      if (result === "superseded" || result === "ok") return;
+      terminalService.resetScreen();
+      terminalService.writeDivider("스냅숏 복원 실패 — 일반 부팅으로 재시도");
+    }
+    this.store.set({ phase: "error", error: "부팅 시간이 초과되었습니다. VM을 재시작해 보세요." });
+  }
+
+  private async bootOnce(
+    kind: ImageKind,
+    paths: ReturnType<typeof vmPathsFromBase>,
+    withState: boolean,
+  ): Promise<"ok" | "failed" | "superseded"> {
+    this.store.set({ fromState: withState, download: null });
+    const emulator = new V86(buildV86Options({ kind, paths, useState: withState }) as unknown as V86Options);
     this.emulator = emulator;
 
     emulator.add_listener("download-progress", (p) => {
@@ -101,13 +117,20 @@ class VmService {
 
     serialBus.attach(emulator);
     // 스냅숏 복원은 수 초, 콜드 부팅(특히 Alpine 9p 첫 부팅)은 수 분까지 허용
-    const bootTimeoutMs = kind === "legacy" ? 90_000 : useState ? 120_000 : 240_000;
+    const bootTimeoutMs = kind === "legacy" ? 90_000 : withState ? 120_000 : 240_000;
     const ok = await serialBus.waitForShell(bootTimeoutMs);
-    if (this.emulator !== emulator) return; // 도중에 restart됨
+    if (this.emulator !== emulator) return "superseded"; // 도중에 restart됨
     this.store.set({ download: null });
     if (!ok) {
-      this.store.set({ phase: "error", error: "부팅 시간이 초과되었습니다. VM을 재시작해 보세요." });
-      return;
+      serialBus.detach();
+      try {
+        await emulator.destroy();
+      } catch {
+        // 무시
+      }
+      if (this.emulator !== emulator) return "superseded";
+      this.emulator = null;
+      return "failed";
     }
 
     // 터미널 크기·TERM 동기화 (숨김 실행) — 스냅숏 부팅 시 저장 당시 크기를 덮어쓴다
@@ -117,13 +140,14 @@ class VmService {
       `export TERM=vt100; stty rows ${Math.max(rows, 10)} cols ${Math.max(cols, 40)}`,
       { timeoutMs: 4000 },
     );
-    if (this.emulator !== emulator) return;
+    if (this.emulator !== emulator) return "superseded";
 
     terminalService.resetScreen();
     terminalService.writeDivider("리눅스 셸 준비 완료");
     serialBus.setGates({ display: true, input: true });
     serialBus.sendRaw("\n");
     this.store.set({ phase: "ready" });
+    return "ok";
   }
 }
 

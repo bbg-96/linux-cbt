@@ -5,6 +5,7 @@
  */
 export const NET_RESET: string[] = [
   "modprobe virtio_net 2>/dev/null; true",
+  "rc-service networkmanager stop >/dev/null 2>&1; true",
   "killall tcpdump 2>/dev/null; true",
   "killall udhcpc 2>/dev/null; true",
   "iptables -F 2>/dev/null; iptables -X 2>/dev/null; true",

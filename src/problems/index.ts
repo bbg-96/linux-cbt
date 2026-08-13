@@ -26,6 +26,7 @@ import { net02 } from "./data/network/net-02";
 import { net03 } from "./data/network/net-03";
 import { net04 } from "./data/network/net-04";
 import { net05 } from "./data/network/net-05";
+import { net06 } from "./data/network/net-06";
 
 export const problems: Problem[] = [
   files01,
@@ -55,6 +56,7 @@ export const problems: Problem[] = [
   net03,
   net04,
   net05,
+  net06,
 ];
 
 export function findProblem(id: string): Problem | undefined {
