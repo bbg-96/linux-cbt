@@ -37,6 +37,11 @@ export class LineAssembler {
     return lines;
   }
 
+  /** 아직 개행되지 않은 현재 라인 (login:/Password: 프롬프트 감지용). */
+  getPartial(): string {
+    return this.partial;
+  }
+
   reset(): void {
     this.decoder = new TextDecoder("utf-8");
     this.partial = "";

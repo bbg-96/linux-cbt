@@ -176,6 +176,20 @@ class SerialBus {
       await sleep(600);
       if (this.lastOutputAt === 0) continue; // 아직 아무 출력도 없음
       if (Date.now() - this.lastOutputAt < 700) continue; // 부팅 출력 진행 중
+
+      // 로그인 프롬프트에서 명령을 타이핑하면 안 되므로 먼저 처리한다
+      const tail = this.assembler.getPartial();
+      if (/login: ?$/i.test(tail)) {
+        this.sendRaw("root\n");
+        await sleep(300);
+        continue;
+      }
+      if (/password: ?$/i.test(tail)) {
+        this.sendRaw("\n");
+        await sleep(300);
+        continue;
+      }
+
       const prevDisplay = this.displayEnabled;
       this.displayEnabled = false;
       const ok = await this.probe(1500);
