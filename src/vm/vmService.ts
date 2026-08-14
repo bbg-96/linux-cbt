@@ -161,7 +161,7 @@ class VmInstance {
     const base = import.meta.env.BASE_URL;
     const manifest = kind === "legacy" ? null : await fetchManifest(base, kind);
     // fs.json·스냅숏은 같은 빌드끼리만 짝지어야 한다 (vmConfig 주석 참고)
-    const paths = vmPathsFromBase(base, manifest ? imageVersion(manifest) : undefined);
+    const paths = vmPathsFromBase(base, manifest ? imageVersion(manifest) : undefined, manifest?.partsDir);
     const hasState = manifest?.hasState === true;
     if (kind === "debian" && !manifest?.diskSize) {
       this.store.set({ phase: "error", error: "디스크 이미지 정보를 읽지 못했습니다 (manifest.json)." });

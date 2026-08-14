@@ -33,10 +33,15 @@ const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
 // public/ 밖에 둔다 — 안에 두면 vite 빌드가 이 544MB를 dist로 복사해 배포까지 간다
 const rawDir = path.join(root, ".cache", "debian-parts-raw");
 {
-  const zstdDir = path.join(debDir, "parts");
+  const zstdDir = path.join(debDir, manifest.partsDir ?? "parts");
   const zlib = await import("node:zlib");
-  const need = !fs.existsSync(rawDir) ||
-    fs.readdirSync(rawDir).length !== Math.ceil(manifest.diskSize / manifest.chunkSize);
+  // 파일 개수만 비교하면 이미지를 재빌드해도(개수 동일) 구 디스크 캐시를 재사용해
+  // 브라우저가 받는 새 청크와 다른 디스크로 스냅숏을 뜨게 된다 — builtAt 으로 판별
+  const markerFile = path.join(rawDir, ".builtAt");
+  const need =
+    !fs.existsSync(markerFile) ||
+    fs.readFileSync(markerFile, "utf8") !== manifest.builtAt ||
+    fs.readdirSync(rawDir).length - 1 !== Math.ceil(manifest.diskSize / manifest.chunkSize);
   if (need) {
     fs.rmSync(rawDir, { recursive: true, force: true });
     fs.mkdirSync(rawDir, { recursive: true });
@@ -46,6 +51,7 @@ const rawDir = path.join(root, ".cache", "debian-parts-raw");
       const zst = fs.readFileSync(path.join(zstdDir, name + ".zst"));
       fs.writeFileSync(path.join(rawDir, name), zlib.zstdDecompressSync(zst));
     }
+    fs.writeFileSync(markerFile, manifest.builtAt);
     console.log("완료");
   }
 }
@@ -93,10 +99,18 @@ emulator.add_listener("serial0-output-byte", (byte) => {
   const plain = serial.replace(/\x1b\[[0-9;?]*[A-Za-z]/g, "");
   if (phase === "boot" && /root@[^\s]*:[^\n]*#\s*$/.test(plain)) {
     phase = "settle";
-    console.log(`[${el()}] 셸 프롬프트 도달. 정리 후 저장…`);
-    // 캐시를 비워 스냅숏에 담기는 더티 블록·페이지캐시를 줄인다
-    emulator.serial0_send("sync; echo 3 > /proc/sys/vm/drop_caches; systemctl is-system-running\n");
-    setTimeout(saveState, 15_000);
+    console.log(`[${el()}] 셸 프롬프트 도달. 정리·예열 후 저장…`);
+    // 순서가 중요하다: 캐시를 비워 스냅숏을 줄인 "다음", 학습자가 첫 화면에서 칠
+    // 도구들(hostnamectl 계열·lsblk·df)을 한 번씩 실행해 그 바이너리·라이브러리만
+    // 페이지캐시에 다시 올린다. 예열 없이 저장하면 복원 직후 첫 호출이 디스크
+    // 청크 HTTP 페치까지 겹쳐 수 초씩 걸린다. 데몬(hostnamed·timedated)도 이때
+    // 기동된 채 저장되고, 이후에는 이미지의 ctl-keepalive 유닛이 상주시킨다.
+    emulator.serial0_send(
+      "sync; echo 3 > /proc/sys/vm/drop_caches; " +
+        "hostnamectl >/dev/null; timedatectl >/dev/null; lsblk >/dev/null; df -hT >/dev/null; " +
+        "systemctl is-active ctl-keepalive; systemctl is-system-running\n",
+    );
+    setTimeout(saveState, 20_000);
   }
 });
 

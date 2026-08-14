@@ -37,6 +37,13 @@ RUN systemctl mask systemd-random-seed.service systemd-update-utmp.service \
 # 하드웨어 랜덤·엔트로피가 없는 환경이라 부팅이 멈추지 않도록
 RUN printf 'root=/dev/sda\n' > /etc/kernel-img.conf || true
 
+# hostnamed·timedated 는 유휴 30초면 스스로 종료하는 버스 활성화 데몬이라,
+# 학습자가 hostnamectl/timedatectl 을 칠 때마다 에뮬레이터에서 데몬을 새로
+# 띄우는 수 초의 비용이 든다. 25초 주기로 가볍게 질의해 상주시킨다.
+# (busctl 은 클라이언트 로딩이 가장 가벼운 경로 — hostnamectl 재호출보다 싸다)
+RUN printf '[Unit]\nDescription=Keep hostnamed/timedated resident (emulator latency)\nAfter=multi-user.target\n\n[Service]\nExecStart=/bin/sh -c "while :; do busctl get-property org.freedesktop.hostname1 /org/freedesktop/hostname1 org.freedesktop.hostname1 Hostname >/dev/null 2>&1; busctl get-property org.freedesktop.timedate1 /org/freedesktop/timedate1 org.freedesktop.timedate1 Timezone >/dev/null 2>&1; sleep 25; done"\nRestart=always\n\n[Install]\nWantedBy=multi-user.target\n' > /etc/systemd/system/ctl-keepalive.service
+RUN systemctl enable ctl-keepalive.service
+
 RUN hostnamectl set-hostname localhost 2>/dev/null; echo localhost > /etc/hostname
 RUN printf '127.0.0.1\tlocalhost\n' > /etc/hosts
 

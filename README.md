@@ -123,10 +123,16 @@ util-linux 라 Alpine 에도 넣을 수 있지만 같은 트랙으로 묶었다)
 아예 타지 않는다. v86 의 `use_parts` 로 **접근한 1MiB 청크만** 내려받으므로 디스크가
 544MB 여도 첫 로딩은 스냅숏(42MB) 중심이다.
 
-주의: 청크 파일명은 v86 이 URL 에서 유도한다 — `.../parts/rootfs.ext4.zst` 를 주면
+주의: 청크 파일명은 v86 이 URL 에서 유도한다 — `.../<partsDir>/rootfs.ext4.zst` 를 주면
 `rootfs-<start>-<end>.ext4.zst` 를 찾는다. 이름이 어긋나면 404 만 나므로
-`image/debian/build.sh` 의 명명 규칙을 바꾸지 말 것. 또 이 URL 에는 `?v=` 를 붙이면
-안 된다(파트 URL 이 깨진다).
+`image/debian/build.sh` 의 명명 규칙을 바꾸지 말 것. 이 URL 에는 `?v=` 를 붙이면
+안 되므로(파트 URL 이 깨진다), 캐시 짝 문제는 **파트 디렉터리 이름을 빌드마다 바꿔서**
+막는다 — `manifest.partsDir` 가 그 이름의 단일 진실이다.
+
+또한 hostnamed·timedated 는 유휴 30초에 자동 종료되는 버스 활성화 데몬이라, 에뮬레이터
+에서는 호출마다 데몬 재기동으로 2초 이상 걸린다(실측 2.2s → 상주 시 0.2s). 이미지의
+`ctl-keepalive` 유닛이 25초 주기 busctl 질의로 상주시키고, 스냅숏 생성 시 도구들을 한 번
+실행(예열)해 첫 호출의 디스크 청크 페치도 없앤다.
 
 ```bash
 wsl -d Ubuntu-24.04 -u root bash -lc "cd /mnt/c/Users/pangp/linux-cbt/image/debian && bash ./build.sh"

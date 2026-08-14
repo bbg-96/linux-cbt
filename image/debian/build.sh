@@ -85,12 +85,19 @@ PY
 
 MANIFEST="$WORK/manifest.json"
 KVER=$(basename "$KERNEL" | sed 's/^vmlinuz-//')
-printf '{ "kernelVersion": "%s", "diskSize": %s, "chunkSize": %s, "builtAt": "%s", "hasState": false }\n' \
-  "$KVER" "$PADDED" "$CHUNK" "$(date -u +%FT%TZ)" > "$MANIFEST"
+BUILT_AT=$(date -u +%FT%TZ)
+# 파트 디렉터리 이름을 빌드마다 바꾼다 — 청크 파일은 URL 쿼리 버전을 달 수 없으므로
+# (파일명을 v86이 유도) 디렉터리로 캐시를 가른다. 안 그러면 이미지 교체 배포 후
+# 재방문자가 "구 청크(브라우저 캐시) + 신 스냅숏"으로 부팅해 게스트가 깨진다
+# (alpine에서 실제 발생했던 캐시 짝 사고와 동일 패턴).
+PARTS_DIR="parts-$(date -u +%Y%m%d%H%M%S)"
+printf '{ "kernelVersion": "%s", "diskSize": %s, "chunkSize": %s, "builtAt": "%s", "partsDir": "%s", "hasState": false }\n' \
+  "$KVER" "$PADDED" "$CHUNK" "$BUILT_AT" "$PARTS_DIR" > "$MANIFEST"
 
 echo "== 프로젝트로 복사 중 =="
 rm -rf "$OUT"
 mkdir -p "$OUT"
-cp -a "$WORK/vmlinuz" "$WORK/initrd.img" "$MANIFEST" "$WORK/parts" "$OUT/"
+cp -a "$WORK/vmlinuz" "$WORK/initrd.img" "$MANIFEST" "$OUT/"
+cp -a "$WORK/parts" "$OUT/$PARTS_DIR"
 echo "완료: $OUT"
-du -sh "$OUT/parts" "$OUT/vmlinuz" "$OUT/initrd.img" | sed 's/^/  /'
+du -sh "$OUT/$PARTS_DIR" "$OUT/vmlinuz" "$OUT/initrd.img" | sed 's/^/  /'

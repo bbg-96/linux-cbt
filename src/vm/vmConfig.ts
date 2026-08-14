@@ -37,8 +37,9 @@ export interface VmImagePaths {
  * 이미지가 바뀔 때마다 새 URL이 되어 섞일 수 없다.
  * rootfs-flat 파일들은 내용 해시가 곧 이름이라 이 문제가 없다.
  */
-export function vmPathsFromBase(base: string, version?: string): VmImagePaths {
+export function vmPathsFromBase(base: string, version?: string, debianPartsDir?: string): VmImagePaths {
   const v = version ? `?v=${version}` : "";
+  const partsDir = debianPartsDir ?? "parts";
   return {
     wasm: `${base}vm/v86.wasm`,
     seabios: `${base}vm/bios/seabios.bin`,
@@ -49,9 +50,9 @@ export function vmPathsFromBase(base: string, version?: string): VmImagePaths {
     debianKernel: `${base}vm/debian/vmlinuz${v}`,
     debianInitrd: `${base}vm/debian/initrd.img${v}`,
     // 청크 파일명은 v86이 이 이름에서 만든다 (rootfs-<start>-<end>.ext4.zst).
-    // 쿼리를 붙이면 파트 URL이 깨지므로 여기에는 버전을 달지 않는다 — 대신 청크는
-    // 내용이 바뀌면 이미지 전체가 새로 배포되고, 짝이 어긋나면 스냅숏 쪽에서 걸린다.
-    debianDisk: `${base}vm/debian/parts/rootfs.ext4.zst`,
+    // URL 쿼리를 붙이면 파트 URL이 깨지므로, 캐시 짝 문제(구 청크 + 신 스냅숏)는
+    // 디렉터리 이름을 빌드마다 바꿔서 막는다 (manifest.partsDir, 예: parts-2026...).
+    debianDisk: `${base}vm/debian/${partsDir}/rootfs.ext4.zst`,
     debianState: `${base}vm/debian/state.bin.zst${v}`,
     legacyIso: `${base}vm/linux.iso`,
   };
@@ -162,6 +163,8 @@ export interface ImageManifest {
   diskSize?: number;
   chunkSize?: number;
   kernelVersion?: string;
+  /** 디스크 청크 디렉터리 (빌드마다 다른 이름 — 캐시 짝 어긋남 방지) */
+  partsDir?: string;
 }
 
 /** 하위 호환 별칭 (기존 코드가 쓰던 이름) */
