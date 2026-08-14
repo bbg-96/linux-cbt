@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { CatalogSidebar } from "./CatalogSidebar";
 import { MOBILE_QUERY, useMediaQuery } from "../lib/useMediaQuery";
+import { applyTheme, getTheme, type Theme } from "../lib/theme";
 
 /**
  * 헤더 + 접이식 카탈로그 사이드바 + 메인(<Outlet/>).
@@ -13,6 +14,13 @@ export function CatalogLayout() {
   const isMobile = useMediaQuery(MOBILE_QUERY);
   const isSolve = location.pathname.startsWith("/p/");
   const [open, setOpen] = useState(!isSolve && !isMobile);
+  const [theme, setTheme] = useState<Theme>(getTheme);
+
+  const toggleTheme = () => {
+    const next: Theme = theme === "dark" ? "light" : "dark";
+    applyTheme(next);
+    setTheme(next);
+  };
 
   useEffect(() => {
     setOpen(isMobile ? false : !isSolve);
@@ -35,6 +43,13 @@ export function CatalogLayout() {
         <nav className="app-nav">
           <Link to="/terminal">터미널</Link>
         </nav>
+        <button
+          className="theme-toggle"
+          onClick={toggleTheme}
+          title={theme === "dark" ? "라이트 모드로 전환" : "다크 모드로 전환"}
+        >
+          {theme === "dark" ? "☀️" : "🌙"}
+        </button>
       </header>
       <div className="app-body">
         {open && isMobile && <div className="sidebar-backdrop" onClick={() => setOpen(false)} />}

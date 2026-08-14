@@ -3,6 +3,9 @@ import { createRoot } from "react-dom/client";
 import { HashRouter } from "react-router-dom";
 import App from "./App";
 import "./index.css";
+import { initTheme } from "./lib/theme";
+
+initTheme();
 import { serialBus, serialChannels } from "./vm/serialBus";
 import { vmService } from "./vm/vmService";
 import { terminals, terminalService } from "./terminal/terminalService";

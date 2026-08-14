@@ -12,6 +12,45 @@
   color-scheme: dark;
 }
 
+/* 라이트 테마 — UI만 밝아진다. 터미널 창·탭 바·코드 블록은 실터미널 정체성을 위해
+   테마와 무관하게 항상 다크다 (IDE 라이트 테마의 터미널과 같은 관례). */
+html[data-theme="light"] {
+  --bg: #f4f6f8;
+  --bg-panel: #ffffff;
+  --bg-raised: #eaeef2;
+  --border: #d3dae2;
+  --text: #22292f;
+  --text-muted: #5b6774;
+  --accent: #0969da;
+  --green: #1a7f37;
+  --red: #cf222e;
+  --yellow: #9a6700;
+  color-scheme: light;
+}
+
+/* 라이트 테마에서 인라인 코드 칩은 밝은 배경으로 (블록 코드는 다크 유지) */
+html[data-theme="light"] .rt code,
+html[data-theme="light"] .hint-item code,
+html[data-theme="light"] .objective-list code {
+  background: #eef1f5;
+  border-color: #d3dae2;
+  color: #0550ae;
+}
+
+.theme-toggle {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1;
+  padding: 6px 9px;
+  cursor: pointer;
+}
+
+.theme-toggle:hover {
+  border-color: var(--accent);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -748,12 +787,13 @@ body {
   gap: 8px;
 }
 
-/* 팬 수 선택 툴바 */
+/* 팬 수 선택 툴바 — 오른쪽 정렬 세그먼트 컨트롤 */
 .ws-toolbar {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 .ws-toolbar-label {
@@ -761,31 +801,39 @@ body {
   color: var(--text-muted);
 }
 
-.ws-layout-btn {
+.seg {
+  display: inline-flex;
   border: 1px solid var(--border);
-  border-radius: 7px;
-  background: var(--bg-raised);
+  border-radius: 8px;
+  background: var(--bg-panel);
+  overflow: hidden;
+}
+
+.seg-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
   color: var(--text-muted);
-  font-size: 12px;
-  padding: 4px 10px;
+  padding: 5px 11px;
   cursor: pointer;
+  line-height: 0;
 }
 
-.ws-layout-btn:hover {
+.seg-btn + .seg-btn {
+  border-left: 1px solid var(--border);
+}
+
+.seg-btn:hover {
   color: var(--text);
-  border-color: var(--accent);
+  background: var(--bg-raised);
 }
 
-.ws-layout-active {
+.seg-btn-active,
+.seg-btn-active:hover {
   color: var(--accent);
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
-}
-
-.ws-toolbar-hint {
-  margin-left: auto;
-  font-size: 11px;
-  color: var(--text-muted);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
 }
 
 /* 팬 그리드 — 1: 전체, 2: 좌우, 4: 2×2 */

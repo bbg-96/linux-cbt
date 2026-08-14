@@ -29,6 +29,17 @@ interface Props {
 const CIRCLED = ["①", "②"];
 const DND_TYPE = "text/x-cbt-session";
 
+/** 분할 레이아웃 아이콘 — 창 테두리 + 분할선을 그대로 그린 미니어처 */
+function LayoutIcon({ n }: { n: 1 | 2 | 4 }) {
+  return (
+    <svg width="18" height="14" viewBox="0 0 18 14" aria-hidden>
+      <rect x="1" y="1" width="16" height="12" rx="2.5" fill="none" stroke="currentColor" strokeWidth="1.6" />
+      {n >= 2 && <line x1="9" y1="1.8" x2="9" y2="12.2" stroke="currentColor" strokeWidth="1.4" />}
+      {n === 4 && <line x1="1.8" y1="7" x2="16.2" y2="7" stroke="currentColor" strokeWidth="1.4" />}
+    </svg>
+  );
+}
+
 export function TerminalWorkspace({ lockedA, overlayA, lockedB = false, overlayB }: Props) {
   const ws = useStore(termWorkspace.store);
   const vmA = useStore(vmService.store);
@@ -71,17 +82,23 @@ export function TerminalWorkspace({ lockedA, overlayA, lockedB = false, overlayB
           <>
             <div className="ws-toolbar">
               <span className="ws-toolbar-label">화면 분할</span>
-              {([1, 2, 4] as PaneLayout[]).map((n) => (
-                <button
-                  key={n}
-                  className={`ws-layout-btn ${ws.layout === n ? "ws-layout-active" : ""}`}
-                  title={`터미널 화면 ${n}개`}
-                  onClick={() => termWorkspace.setLayout(n)}
-                >
-                  {n === 1 ? "▬" : n === 2 ? "◫" : "⊞"} {n}
-                </button>
-              ))}
-              <span className="ws-toolbar-hint">탭을 끌어 다른 화면으로 옮길 수 있습니다</span>
+              <div className="seg" role="group" aria-label="화면 분할">
+                {([1, 2, 4] as PaneLayout[]).map((n) => (
+                  <button
+                    key={n}
+                    className={`seg-btn ${ws.layout === n ? "seg-btn-active" : ""}`}
+                    title={
+                      n === 1
+                        ? "화면 1개"
+                        : `화면 ${n}개로 분할 — 탭을 끌어 다른 화면으로 옮길 수 있습니다`
+                    }
+                    aria-pressed={ws.layout === n}
+                    onClick={() => termWorkspace.setLayout(n)}
+                  >
+                    <LayoutIcon n={n} />
+                  </button>
+                ))}
+              </div>
             </div>
             <div className="pane-grid" data-n={ws.layout}>
               {Array.from({ length: ws.layout }, (_, p) => (
