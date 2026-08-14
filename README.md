@@ -134,6 +134,22 @@ util-linux 라 Alpine 에도 넣을 수 있지만 같은 트랙으로 묶었다)
 `ctl-keepalive` 유닛이 25초 주기 busctl 질의로 상주시키고, 스냅숏 생성 시 도구들을 한 번
 실행(예열)해 첫 호출의 디스크 청크 페치도 없앤다.
 
+### 게스트 네트워크로 할 수 있는 것과 없는 것 (실측)
+
+v86 의 fetch 릴레이는 가상 라우터(192.168.86.1)로 동작하지만 만능이 아니다:
+
+| 되는 것 | 안 되는 것 |
+|---|---|
+| ARP·DHCP·**모든 주소의 ICMP 응답**(ping 은 어디든 성공) | **DNS 질의 응답 없음** — `getent`/`dig` 가 그냥 타임아웃 |
+| TCP 핸드셰이크(`/dev/tcp` 연결 성립) | 외부 HTTP 왕복 — 페이지 origin 에서 나가는 fetch 라 CORS 로 막힌다 |
+| 게스트 내부(127.0.0.1)·게스트 간(2-VM) 통신 전부 | traceroute 의 다중 홉 (릴레이가 전부 응답해 홉이 1개) |
+
+그래서 이름 해석·HTTP 문제는 **게스트 안에 서버를 띄워** 만든다 — `netinfo-01` 의 setup 이
+`dnsmasq`(사설 DNS, 플래그로 직접 실행: Debian 기본 conf 는 conf-dir 을 읽지 않는다)와
+`nginx` 를 띄우고, `/dev/tcp` 로 연결 하나를 붙잡아 `ss -antp` 에 ESTABLISHED 가 보이게 한다.
+부팅 직후 상태는 **eth0 DOWN·주소 없음·리스닝 포트 0개**이므로, 네트워크 문제는 setup 에서
+필요한 상태를 직접 구성해야 한다.
+
 ```bash
 wsl -d Ubuntu-24.04 -u root bash -lc "cd /mnt/c/Users/pangp/linux-cbt/image/debian && bash ./build.sh"
 node scripts/build-state-debian.mjs   # 부트 스냅숏 (이미지 재빌드 때마다 재실행)

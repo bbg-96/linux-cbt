@@ -9,9 +9,13 @@
 FROM docker.io/i386/debian:12
 
 ENV DEBIAN_FRONTEND=noninteractive
-# 실습 도구는 최소로 — rootfs 가 커질수록 첫 방문 다운로드가 늘어난다
+# 실습 도구는 최소로 — rootfs 가 커질수록 첫 방문 다운로드가 늘어난다.
+# 네트워크 점검 도구군(+67MB): v86 릴레이는 DNS 응답도, 외부 HTTP(CORS)도 하지 않으므로
+# 게스트 안에서 DNS 서버(dnsmasq)와 웹 서버(nginx)를 띄워 dig·nslookup·curl·nc 가
+# 진짜 서버를 상대로 동작하게 만든다. 둘 다 부팅 시에는 꺼져 있고 문제 setup 이 띄운다.
 ENV ADDPKGS="systemd-sysv dbus udev util-linux procps iproute2 iputils-ping \
-net-tools iptables tcpdump ripgrep findutils gawk file less nano tzdata"
+net-tools iptables tcpdump ripgrep findutils gawk file less nano tzdata \
+dnsutils traceroute iputils-tracepath netcat-openbsd curl dnsmasq nginx-light"
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends linux-image-686 $ADDPKGS \
@@ -43,6 +47,11 @@ RUN printf 'root=/dev/sda\n' > /etc/kernel-img.conf || true
 # (busctl 은 클라이언트 로딩이 가장 가벼운 경로 — hostnamectl 재호출보다 싸다)
 RUN printf '[Unit]\nDescription=Keep hostnamed/timedated resident (emulator latency)\nAfter=multi-user.target\n\n[Service]\nExecStart=/bin/sh -c "while :; do busctl get-property org.freedesktop.hostname1 /org/freedesktop/hostname1 org.freedesktop.hostname1 Hostname >/dev/null 2>&1; busctl get-property org.freedesktop.timedate1 /org/freedesktop/timedate1 org.freedesktop.timedate1 Timezone >/dev/null 2>&1; sleep 25; done"\nRestart=always\n\n[Install]\nWantedBy=multi-user.target\n' > /etc/systemd/system/ctl-keepalive.service
 RUN systemctl enable ctl-keepalive.service
+
+# dnsmasq·nginx 는 문제 setup 이 필요할 때만 띄운다 (기본 부팅은 리스닝 포트 0개 상태를
+# 유지해야 "포트 확인" 문제의 전후 차이가 드러난다). 패키지 설치 시 자동 활성화되는
+# 유닛을 꺼 둔다.
+RUN systemctl disable dnsmasq.service nginx.service 2>/dev/null || true
 
 RUN hostnamectl set-hostname localhost 2>/dev/null; echo localhost > /etc/hostname
 RUN printf '127.0.0.1\tlocalhost\n' > /etc/hosts

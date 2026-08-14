@@ -108,9 +108,14 @@ emulator.add_listener("serial0-output-byte", (byte) => {
     emulator.serial0_send(
       "sync; echo 3 > /proc/sys/vm/drop_caches; " +
         "hostnamectl >/dev/null; timedatectl >/dev/null; lsblk >/dev/null; df -hT >/dev/null; " +
+        // 네트워크 점검 도구도 예열한다 — 첫 호출이 디스크 청크를 HTTP로 끌어오면
+        // 학습자에게는 명령이 몇 초씩 멈춘 것처럼 보인다 (hostnamectl 지연과 같은 원인)
+        "ip link >/dev/null; ss -lntup >/dev/null; dig -v >/dev/null 2>&1; nslookup -version >/dev/null 2>&1; " +
+        "curl --version >/dev/null; nc -h >/dev/null 2>&1; traceroute --version >/dev/null 2>&1; " +
+        "ping -c 1 127.0.0.1 >/dev/null; dnsmasq --version >/dev/null; nginx -v 2>/dev/null; " +
         "systemctl is-active ctl-keepalive; systemctl is-system-running\n",
     );
-    setTimeout(saveState, 20_000);
+    setTimeout(saveState, 25_000);
   }
 });
 
