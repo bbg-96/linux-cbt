@@ -37,6 +37,28 @@ html[data-theme="light"] .objective-list code {
   color: #0550ae;
 }
 
+/*
+ * 항상 다크인 터미널 크롬 영역(탭 바·오버레이·빈 팬 안내)은 테마 변수를 다크 값으로
+ * 다시 스코프한다. 배경은 하드코딩 다크인데 글자색이 라이트 토큰을 따라가면
+ * "어두운 글자 on 어두운 배경"이 되기 때문 — 이 재정의로 하위의 탭 텍스트,
+ * ⧉·× 버튼, KeyBar, 부팅/채점 오버레이 텍스트·스피너가 한 번에 원복된다.
+ */
+.pane-tabs,
+.term-overlay,
+.pane-empty {
+  --bg: #0b0e14;
+  --bg-panel: #11151c;
+  --bg-raised: #171c26;
+  --border: #262c38;
+  --text: #d7dde6;
+  --text-muted: #8b95a5;
+  --accent: #58a6ff;
+  --green: #3fb950;
+  --red: #f85149;
+  --yellow: #d29922;
+  color: var(--text);
+}
+
 .theme-toggle {
   background: none;
   border: 1px solid var(--border);
