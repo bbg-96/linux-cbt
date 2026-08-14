@@ -18,6 +18,13 @@ export const CATEGORIES: Category[] = [
   { id: "archive", name: "압축과 아카이브", icon: "📦", order: 6, description: "tar, gzip, 백업" },
   { id: "system", name: "시스템과 디스크", icon: "💾", order: 7, description: "df, du, 용량 분석" },
   { id: "network", name: "네트워크", icon: "🌐", order: 8, description: "ip, route, ping, iptables, tcpdump, nc" },
+  {
+    id: "inspect",
+    name: "서버 점검과 분석",
+    icon: "🔍",
+    order: 9,
+    description: "호스트·OS·커널·자원·디스크 현황 파악과 해석",
+  },
 ];
 
 export function categoryName(id: CategoryId): string {

@@ -1,5 +1,5 @@
 import type { Problem } from "../engine/types";
-import { sysinfo01 } from "./data/system/sysinfo-01";
+import { sysinfo01 } from "./data/inspect/sysinfo-01";
 
 /**
  * 스테이징 사이트(https://bbg-96.github.io/linux-cbt-staging/)에 등록할 문제.

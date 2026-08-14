@@ -12,7 +12,7 @@ import type { Problem } from "../../../engine/types";
  */
 export const sysinfo01 = {
   id: "sysinfo-01",
-  category: "system",
+  category: "inspect",
   title: "Linux 서버의 OS 기본 정보 확인",
   difficulty: 1,
   tags: ["hostnamectl", "lsblk", "df -hT", "timedatectl"],

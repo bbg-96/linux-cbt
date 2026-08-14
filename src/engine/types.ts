@@ -1,4 +1,5 @@
 export type CategoryId =
+  // 기초 문법 트랙 (운영 사이트) — 리눅스의 영역별로 나눈다
   | "files"
   | "permissions"
   | "text"
@@ -6,7 +7,9 @@ export type CategoryId =
   | "process"
   | "archive"
   | "system"
-  | "network";
+  | "network"
+  // 실무 트랙 (스테이징) — 운영 작업의 단계별로 나눈다
+  | "inspect";
 
 interface CheckBase {
   id: string;

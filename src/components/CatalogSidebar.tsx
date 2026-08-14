@@ -1,36 +1,43 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { CATEGORIES } from "../problems/categories";
-import { categoryCommands } from "../problems/catalog";
 import { findProblem, problems } from "../problems";
 import { useStore } from "../lib/store";
-import { progressStore } from "../store/progress";
+import { progressStore, type ProblemProgress } from "../store/progress";
 import type { Problem } from "../engine/types";
 
-/** 현재 라우트에서 활성 카테고리/명령어를 파싱한다. */
-function useActiveNodes(): { activeCat: string | null; activeCmd: string | null } {
+/** 현재 라우트에서 활성 카테고리/문제를 파싱한다. */
+function useActiveNodes(): { activeCat: string | null; activeProblem: string | null } {
   const location = useLocation();
-  const mCat = location.pathname.match(/^\/c\/([^/]+)(?:\/k\/([^/]+))?/);
-  if (mCat) {
-    return { activeCat: mCat[1], activeCmd: mCat[2] ? decodeURIComponent(mCat[2]) : null };
-  }
+  const mCat = location.pathname.match(/^\/c\/([^/]+)/);
+  if (mCat) return { activeCat: mCat[1], activeProblem: null };
   const mProb = location.pathname.match(/^\/p\/([^/]+)/);
   if (mProb) {
-    const p = findProblem(decodeURIComponent(mProb[1]));
-    if (p) return { activeCat: p.category, activeCmd: null };
+    const id = decodeURIComponent(mProb[1]);
+    const p = findProblem(id);
+    if (p) return { activeCat: p.category, activeProblem: p.id };
   }
-  return { activeCat: null, activeCmd: null };
+  return { activeCat: null, activeProblem: null };
+}
+
+/** 문제 노드 앞의 상태 표식 — 해결 ✓ / 시도 중 ● / 미시작 (빈 자리) */
+function statusMark(st: ProblemProgress | undefined): { glyph: string; cls: string } {
+  if (st?.status === "solved") return { glyph: "✓", cls: "side-prob-solved" };
+  if (st?.status === "attempted") return { glyph: "●", cls: "side-prob-attempted" };
+  return { glyph: "", cls: "" };
 }
 
 export function CatalogSidebar() {
   const progress = useStore(progressStore);
-  const { activeCat, activeCmd } = useActiveNodes();
+  const { activeCat, activeProblem } = useActiveNodes();
   const [manual, setManual] = useState<Record<string, boolean>>({});
 
   const isSolved = (p: Problem) => progress.problems[p.id]?.status === "solved";
-  const isExpanded = (catId: string) => manual[catId] ?? catId === activeCat;
+  // 기본은 모두 펼침 — 트리의 목적이 "문제로 바로 가기"라 접혀 있으면 두 번 클릭해야 한다.
+  // 사용자가 접은 카테고리는 그 선택을 기억한다(현재 보고 있는 문제의 카테고리는 예외로 항상 펼침).
+  const isExpanded = (catId: string) => (catId === activeCat ? true : (manual[catId] ?? true));
 
-  // 문제가 없는 카테고리는 트리에서 감춘다 (스테이징처럼 일부만 등록된 경우 대비)
+  // 문제가 없는 카테고리는 트리에서 감춘다 (트랙별로 쓰는 카테고리가 다르다)
   const visibleCategories = CATEGORIES.filter((cat) => problems.some((p) => p.category === cat.id));
 
   if (visibleCategories.length === 0) {
@@ -47,7 +54,7 @@ export function CatalogSidebar() {
         const items = problems.filter((p) => p.category === cat.id);
         const solved = items.filter(isSolved).length;
         const expanded = isExpanded(cat.id);
-        const catActive = cat.id === activeCat && !activeCmd;
+        const catActive = cat.id === activeCat && !activeProblem;
         return (
           <div key={cat.id} className="side-cat">
             <div className={`side-cat-row ${catActive ? "side-active" : ""}`}>
@@ -67,20 +74,18 @@ export function CatalogSidebar() {
               </Link>
             </div>
             {expanded && (
-              <div className="side-cmds">
-                {categoryCommands(cat.id).map(({ cmd, problems: ps }) => {
-                  const cmdSolved = ps.filter(isSolved).length;
-                  const active = cat.id === activeCat && cmd === activeCmd;
+              <div className="side-probs">
+                {items.map((p) => {
+                  const mark = statusMark(progress.problems[p.id]);
                   return (
                     <Link
-                      key={cmd}
-                      className={`side-cmd ${active ? "side-active" : ""}`}
-                      to={`/c/${cat.id}/k/${encodeURIComponent(cmd)}`}
+                      key={p.id}
+                      className={`side-prob ${p.id === activeProblem ? "side-active" : ""}`}
+                      to={`/p/${p.id}`}
+                      title={p.title}
                     >
-                      <span className="side-cmd-name">{cmd}</span>
-                      <span className={`side-count ${cmdSolved === ps.length ? "side-count-done" : ""}`}>
-                        {cmdSolved}/{ps.length}
-                      </span>
+                      <span className={`side-prob-mark ${mark.cls}`}>{mark.glyph}</span>
+                      <span className="side-prob-name">{p.title}</span>
                     </Link>
                   );
                 })}

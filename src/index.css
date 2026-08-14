@@ -242,46 +242,61 @@ body {
   margin: 0;
 }
 
-.side-cmds {
+/* 카테고리 하위의 문제 노드 — 클릭하면 바로 풀이 화면으로 간다 */
+.side-probs {
   margin: 1px 0 4px;
 }
 
-.side-cmd {
+.side-prob {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 10px 4px 32px;
+  align-items: baseline;
+  gap: 6px;
+  padding: 5px 10px 5px 24px;
   border-radius: 6px;
   text-decoration: none;
   color: var(--text-muted);
-  font-family: "Cascadia Mono", Consolas, monospace;
   font-size: 13px;
+  line-height: 1.4;
 }
 
-.side-cmd:hover {
+.side-prob:hover {
   background: var(--bg-raised);
   color: var(--text);
 }
 
-.side-cmd-name {
+/* 상태 표식 자리는 항상 확보해 제목 왼쪽이 들쭉날쭉하지 않게 한다 */
+.side-prob-mark {
+  flex: 0 0 12px;
+  font-size: 11px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.side-prob-solved {
+  color: var(--green);
+}
+
+.side-prob-attempted {
+  color: var(--yellow);
+}
+
+/* 한국어 제목이 길어도 한 줄로 — 전체 제목은 title 툴팁으로 본다 */
+.side-prob-name {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .side-active,
 .side-cat-row.side-active {
-  background: rgba(88, 166, 255, 0.12);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
 }
 
-.side-active .side-cmd-name,
+.side-active .side-prob-name,
 .side-active .side-cat-link {
   color: var(--accent);
-}
-
-.cmd-title {
-  font-family: "Cascadia Mono", Consolas, monospace;
-  background: var(--bg-raised);
-  padding: 2px 10px;
-  border-radius: 8px;
 }
 
 /* ---- 모바일 (≤768px) ---- */
