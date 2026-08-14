@@ -1353,6 +1353,93 @@ body {
   color: var(--text);
 }
 
+/* ---- 문제 본문 리치 텍스트 (RichText) ---- */
+
+.rt {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rt-p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--text);
+}
+
+.rt code,
+.hint-item code,
+.objective-list code {
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 0.92em;
+  background: #11161f;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 5px;
+  color: #7ee787;
+  white-space: nowrap;
+}
+
+.rt-code {
+  margin: 0;
+  padding: 12px 14px;
+  background: #0c0c0c;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: #d4dae2;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.rt-table {
+  border-collapse: collapse;
+  font-size: 12.5px;
+  width: 100%;
+}
+
+.rt-table th,
+.rt-table td {
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.rt-table th {
+  background: var(--bg-raised);
+  color: var(--text-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.rt-table td code {
+  white-space: nowrap;
+}
+
+.rt-list {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 13.5px;
+  line-height: 1.7;
+}
+
+.explanation-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.hint-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .explanation {
   margin-top: 14px;
   border-top: 1px solid var(--border);
