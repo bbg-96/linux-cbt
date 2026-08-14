@@ -28,7 +28,8 @@
 시나리오를 읽고 가상 터미널에서 직접 명령어로 해결하면 자동으로 채점된다.
 
 - 터미널은 시뮬레이터가 아니다 — [v86](https://github.com/copy/v86) (x86→WebAssembly 에뮬레이터)이
-  브라우저 안에서 **Alpine Linux 3.21**(커널 6.12-virt, i686)을 부팅한다.
+  브라우저 안에서 진짜 리눅스를 부팅한다. 사이트별로 게스트가 다르다:
+  **운영 = Alpine 3.21**(9p 루트, OpenRC), **스테이징 = Debian 12**(ext4 디스크, systemd).
 - 가상 네트워크 내장: v86의 fetch 릴레이가 클라이언트 안에서 가상 라우터(192.168.86.1)로 동작해
   DHCP·ARP·ICMP가 실제로 오간다. 서버·백엔드 없음, 정적 호스팅 가능.
 - 부트 스냅숏(`state.bin.zst`)으로 수 초 만에 셸이 뜬다. 진도는 localStorage에 저장.
@@ -99,6 +100,43 @@ npm test                           # 시리얼 프로토콜 단위 테스트 (vi
   매니페스트의 `?v=<fs.json 해시>`를 붙여 짝을 고정한다(`src/vm/vmConfig.ts`).
 - 첫 방문 시 약 25~30MB를 내려받고(스냅숏+커널+실제 접근 파일), 이후는 캐시된다.
   GitHub Pages 대역폭 소프트 한도는 월 100GB.
+
+## 게스트 이미지 프로필 (alpine / debian)
+
+사이트마다 다른 게스트를 쓴다. 프로필은 빌드 모드로 정해진다
+(`.env.staging` 의 `VITE_IMAGE_PROFILE=debian`, 운영은 값이 없어 alpine).
+
+| | 운영 (alpine) | 스테이징 (debian) |
+|---|---|---|
+| 배포판 | Alpine 3.21 (busybox·OpenRC) | Debian 12 bookworm (systemd 252) |
+| 커널 | 6.12-virt | 6.1.0-686 (**비-PAE** — v86 검증 경로) |
+| 루트 | 9p (fs.json + 내용해시 파일) | ext4 통짜 디스크, 1MiB 청크 + zstd |
+| 스냅숏 | 21MB | 42MB |
+| 배포 용량 | 80MB | 198MB |
+
+Debian 프로필을 둔 이유는 `hostnamectl`·`timedatectl` 이 systemd 데몬에 D-Bus 로
+질의하는 클라이언트라 musl 기반 Alpine 에는 존재할 수 없기 때문이다(`lsblk` 는
+util-linux 라 Alpine 에도 넣을 수 있지만 같은 트랙으로 묶었다).
+
+루트를 9p 가 아니라 **블록 디바이스**로 만든 것도 의도적이다 — 배포 환경에서 9p 커널
+경로(`p9_fcall_init→__kmalloc`)가 무너지는 문제를 겪었는데, ext4 디스크는 그 코드를
+아예 타지 않는다. v86 의 `use_parts` 로 **접근한 1MiB 청크만** 내려받으므로 디스크가
+544MB 여도 첫 로딩은 스냅숏(42MB) 중심이다.
+
+주의: 청크 파일명은 v86 이 URL 에서 유도한다 — `.../parts/rootfs.ext4.zst` 를 주면
+`rootfs-<start>-<end>.ext4.zst` 를 찾는다. 이름이 어긋나면 404 만 나므로
+`image/debian/build.sh` 의 명명 규칙을 바꾸지 말 것. 또 이 URL 에는 `?v=` 를 붙이면
+안 된다(파트 URL 이 깨진다).
+
+```bash
+wsl -d Ubuntu-24.04 -u root bash -lc "cd /mnt/c/Users/pangp/linux-cbt/image/debian && bash ./build.sh"
+node scripts/build-state-debian.mjs   # 부트 스냅숏 (이미지 재빌드 때마다 재실행)
+```
+
+`build-state-debian.mjs` 는 Node 에서 zstd 파트를 못 푸는 문제(v86 의 zstd 해제가
+브라우저 Worker 를 쓴다) 때문에 `.cache/debian-parts-raw` 에 비압축 파트를 한 번
+만들어 쓴다. 버퍼 타입·크기가 같아 스냅숏은 브라우저와 호환된다 — 다만 **통짜
+`buffer` 로 부팅하면 안 된다**(스냅숏에 디스크 544MB 가 통째로 들어가 697MB 가 된다).
 
 ## VM 이미지 빌드 (WSL Ubuntu-24.04 + podman)
 

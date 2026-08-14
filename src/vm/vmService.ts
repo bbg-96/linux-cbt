@@ -7,7 +7,7 @@ import {
   buildV86Options,
   imageVersion,
   vmPathsFromBase,
-  type AlpineManifest,
+  type ImageManifest,
   type ImageKind,
 } from "./vmConfig";
 import { disposeBridge, muteRelay } from "./netBridge";
@@ -26,24 +26,33 @@ export interface VmState {
   fromState: boolean;
 }
 
+/**
+ * 사이트별 게스트 이미지 프로필. 스테이징만 debian(systemd)을 쓰고 운영은
+ * 검증된 alpine 을 유지한다 (.env.staging 의 VITE_IMAGE_PROFILE).
+ */
 function detectImageKind(): ImageKind {
   try {
     if (new URLSearchParams(location.search).has("legacy")) return "legacy";
   } catch {
     // SSR/테스트 환경 방어
   }
-  return "alpine";
+  return import.meta.env.VITE_IMAGE_PROFILE === "debian" ? "debian" : "alpine";
+}
+
+/** 프로필별 이미지 디렉터리 (매니페스트 위치이자 산출물 루트) */
+function imageDir(kind: ImageKind): string {
+  return kind === "debian" ? "debian" : "alpine";
 }
 
 // 매니페스트는 항상 서버에 재검증한다(no-cache) — 이미지 버전의 단일 진실이라
 // 여기서 캐시를 신뢰하면 버전 고정 자체가 무의미해진다.
-let manifestPromise: Promise<AlpineManifest | null> | null = null;
-function fetchManifest(base: string): Promise<AlpineManifest | null> {
+let manifestPromise: Promise<ImageManifest | null> | null = null;
+function fetchManifest(base: string, kind: ImageKind): Promise<ImageManifest | null> {
   manifestPromise ??= (async () => {
     try {
-      const res = await fetch(`${base}vm/alpine/manifest.json`, { cache: "no-cache" });
+      const res = await fetch(`${base}vm/${imageDir(kind)}/manifest.json`, { cache: "no-cache" });
       if (!res.ok) return null;
-      return (await res.json()) as AlpineManifest;
+      return (await res.json()) as ImageManifest;
     } catch {
       return null;
     }
@@ -150,15 +159,19 @@ class VmInstance {
     this.grading.setGates({ display: true, input: false });
 
     const base = import.meta.env.BASE_URL;
-    const manifest = kind === "alpine" ? await fetchManifest(base) : null;
+    const manifest = kind === "legacy" ? null : await fetchManifest(base, kind);
     // fs.json·스냅숏은 같은 빌드끼리만 짝지어야 한다 (vmConfig 주석 참고)
     const paths = vmPathsFromBase(base, manifest ? imageVersion(manifest) : undefined);
     const hasState = manifest?.hasState === true;
+    if (kind === "debian" && !manifest?.diskSize) {
+      this.store.set({ phase: "error", error: "디스크 이미지 정보를 읽지 못했습니다 (manifest.json)." });
+      return false;
+    }
 
     // 스냅숏 복원 실패(이미지-스냅숏 불일치 등) 시 콜드 부팅으로 한 번 더 시도
     const attempts = hasState ? [true, false] : [false];
     for (const withState of attempts) {
-      const result = await this.bootOnce(kind, paths, withState);
+      const result = await this.bootOnce(kind, paths, withState, manifest?.diskSize);
       if (result === "superseded") return false;
       if (result === "ok") return true;
       this.term.resetScreen();
@@ -172,10 +185,11 @@ class VmInstance {
     kind: ImageKind,
     paths: ReturnType<typeof vmPathsFromBase>,
     withState: boolean,
+    diskSize?: number,
   ): Promise<"ok" | "failed" | "superseded"> {
     this.store.set({ fromState: withState, download: null });
     const emulator = new V86(
-      buildV86Options({ kind, paths, useState: withState, role: this.id }) as unknown as V86Options,
+      buildV86Options({ kind, paths, useState: withState, diskSize, role: this.id }) as unknown as V86Options,
     );
     this.emulator = emulator;
     if (this.id === "b") muteRelay(emulator); // B의 릴레이는 영구 음소거 (netBridge 참고)
@@ -219,12 +233,12 @@ class VmInstance {
     }
 
     // 터미널 크기·TERM·프롬프트 동기화 (숨김 실행) — 스냅숏 부팅 시 저장 당시 크기를 덮어쓴다
-    // (컬러 PS1은 Alpine 전용 — 레거시 busybox의 프롬프트 이스케이프 지원은 미검증)
+    // (컬러 PS1은 alpine·debian 모두 적용 — 레거시 이미지의 프롬프트 이스케이프만 미검증)
     this.grading.setGates({ display: false, input: false });
     const { rows, cols } = this.term.getSize();
     await this.grading.runTransaction(
       `export TERM=vt100; stty rows ${Math.max(rows, 10)} cols ${Math.max(cols, 40)}` +
-        (kind === "alpine" ? `; ${PS1_INIT}` : ""),
+        (kind === "legacy" ? "" : `; ${PS1_INIT}`),
       { timeoutMs: 4000 },
     );
     if (this.emulator !== emulator) return "superseded";

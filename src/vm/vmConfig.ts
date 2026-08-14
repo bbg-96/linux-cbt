@@ -1,7 +1,15 @@
 // V86 생성자 옵션의 단일 소스 — 브라우저(vmService)와 스냅숏 생성기(scripts/build-state.mjs)가
 // 동일한 옵션으로 VM을 만들어야 save_state/initial_state가 호환된다.
 
-export type ImageKind = "alpine" | "legacy";
+/**
+ * 게스트 이미지 프로필.
+ *  - alpine: 9p 루트, busybox/OpenRC. 운영 사이트의 검증된 기본값.
+ *  - debian: ext4 블록 디스크 루트, systemd. hostnamectl·timedatectl·lsblk 처럼
+ *    systemd/util-linux 도구가 필요한 문제를 위해 스테이징에서 쓴다. 9p 를 아예
+ *    타지 않으므로 배포 환경에서 9p 커널 경로가 무너지던 문제와도 무관하다.
+ *  - legacy: 초기 buildroot ISO (임시 폴백, ?legacy).
+ */
+export type ImageKind = "alpine" | "debian" | "legacy";
 
 /** 브라우저에서는 URL, Node에서는 로컬 파일 경로를 넣는다. */
 export interface VmImagePaths {
@@ -11,6 +19,11 @@ export interface VmImagePaths {
   alpineFsJson: string;
   alpineRootfsBase: string;
   alpineState: string;
+  debianKernel: string;
+  debianInitrd: string;
+  /** 청크 파일들의 기준 이름 (.../rootfs.ext4.zst) — v86이 여기서 파트명을 만든다 */
+  debianDisk: string;
+  debianState: string;
   legacyIso: string;
 }
 
@@ -33,6 +46,13 @@ export function vmPathsFromBase(base: string, version?: string): VmImagePaths {
     alpineFsJson: `${base}vm/alpine/fs.json${v}`,
     alpineRootfsBase: `${base}vm/alpine/rootfs-flat/`,
     alpineState: `${base}vm/alpine/state.bin.zst${v}`,
+    debianKernel: `${base}vm/debian/vmlinuz${v}`,
+    debianInitrd: `${base}vm/debian/initrd.img${v}`,
+    // 청크 파일명은 v86이 이 이름에서 만든다 (rootfs-<start>-<end>.ext4.zst).
+    // 쿼리를 붙이면 파트 URL이 깨지므로 여기에는 버전을 달지 않는다 — 대신 청크는
+    // 내용이 바뀌면 이미지 전체가 새로 배포되고, 짝이 어긋나면 스냅숏 쪽에서 걸린다.
+    debianDisk: `${base}vm/debian/parts/rootfs.ext4.zst`,
+    debianState: `${base}vm/debian/state.bin.zst${v}`,
     legacyIso: `${base}vm/linux.iso`,
   };
 }
@@ -40,11 +60,20 @@ export function vmPathsFromBase(base: string, version?: string): VmImagePaths {
 export const ALPINE_CMDLINE =
   "rw root=host9p rootfstype=9p rootflags=trans=virtio,cache=loose modules=virtio_pci tsc=reliable console=ttyS0";
 
+/** 파티션 없는 통짜 ext4 를 그대로 루트로 마운트한다 (부트로더 없이 커널 직접 부팅) */
+export const DEBIAN_CMDLINE =
+  "root=/dev/sda rw rootfstype=ext4 console=ttyS0,115200 net.ifnames=0 tsc=reliable";
+
+/** debian 프로필 디스크 청크 크기 — image/debian/build.sh 의 CHUNK 와 반드시 같아야 한다 */
+export const DEBIAN_CHUNK_SIZE = 1024 * 1024;
+
 export interface BuildOptionsArgs {
   kind: ImageKind;
   paths: VmImagePaths;
   /** manifest.hasState가 참일 때만 true — 스냅숏에서 즉시 복원 */
   useState: boolean;
+  /** debian 프로필 전용 — manifest.diskSize (압축 해제 기준 전체 바이트) */
+  diskSize?: number;
   /**
    * a = 메인 VM, b = 양단 문제용 두 번째 VM.
    * 현재 두 역할의 옵션은 동일하다 (같은 스냅숏 재사용을 위해 반드시 동일해야 함).
@@ -54,7 +83,13 @@ export interface BuildOptionsArgs {
 }
 
 /** V86Options 형태의 객체를 만든다 (v86 타입은 호출부에서 캐스팅). */
-export function buildV86Options({ kind, paths, useState, role = "a" }: BuildOptionsArgs): Record<string, unknown> {
+export function buildV86Options({
+  kind,
+  paths,
+  useState,
+  diskSize,
+  role = "a",
+}: BuildOptionsArgs): Record<string, unknown> {
   const common = {
     wasm_path: paths.wasm,
     bios: { url: paths.seabios },
@@ -70,6 +105,29 @@ export function buildV86Options({ kind, paths, useState, role = "a" }: BuildOpti
       ...common,
       memory_size: 96 * 1024 * 1024,
       cdrom: { url: paths.legacyIso },
+    };
+  }
+
+  if (kind === "debian") {
+    if (!diskSize) throw new Error("debian 프로필에는 manifest.diskSize가 필요합니다.");
+    return {
+      ...common,
+      memory_size: 512 * 1024 * 1024,
+      vga_memory_size: 8 * 1024 * 1024,
+      uart1: true,
+      bzimage: { url: paths.debianKernel },
+      initrd: { url: paths.debianInitrd },
+      cmdline: DEBIAN_CMDLINE,
+      // use_parts: 접근한 1MiB 청크만 내려받는다 (전체 디스크를 받지 않는다)
+      hda: {
+        url: paths.debianDisk,
+        size: diskSize,
+        use_parts: true,
+        fixed_chunk_size: DEBIAN_CHUNK_SIZE,
+        async: true,
+      },
+      net_device: role === "b" ? { type: "virtio" } : { type: "virtio", relay_url: "fetch" },
+      ...(useState ? { initial_state: { url: paths.debianState } } : {}),
     };
   }
 
@@ -92,15 +150,29 @@ export function buildV86Options({ kind, paths, useState, role = "a" }: BuildOpti
   };
 }
 
-export interface AlpineManifest {
-  fsJsonSha256: string;
-  withNM: number;
+/** 두 프로필의 manifest.json 을 함께 담는 형태 (프로필별 필드는 선택) */
+export interface ImageManifest {
   hasState: boolean;
   builtAt: string;
   stateBuiltAt?: string;
+  /** alpine 전용 */
+  fsJsonSha256?: string;
+  withNM?: number;
+  /** debian 전용 */
+  diskSize?: number;
+  chunkSize?: number;
+  kernelVersion?: string;
 }
 
-/** 이미지 빌드 식별자 — fs.json 해시 앞부분 (URL 캐시 버스팅용). */
-export function imageVersion(manifest: AlpineManifest): string {
-  return manifest.fsJsonSha256.slice(0, 12);
+/** 하위 호환 별칭 (기존 코드가 쓰던 이름) */
+export type AlpineManifest = ImageManifest;
+
+/**
+ * 이미지 빌드 식별자 — 캐시 버스팅용.
+ * alpine 은 fs.json 해시, debian 은 빌드 시각을 쓴다(디스크 청크는 이름이 고정이라
+ * 버전을 달 수 없으므로, 짝을 맞춰야 하는 스냅숏 쪽에만 붙인다).
+ */
+export function imageVersion(manifest: ImageManifest): string {
+  if (manifest.fsJsonSha256) return manifest.fsJsonSha256.slice(0, 12);
+  return (manifest.stateBuiltAt ?? manifest.builtAt).replace(/\D/g, "").slice(0, 14);
 }
