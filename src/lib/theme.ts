@@ -1,7 +1,8 @@
 /**
- * 라이트/다크 테마. 기본은 다크(사이트 정체성이 터미널)이고, 선택은 localStorage에
- * 남는다. 터미널 창·코드 블록은 테마와 무관하게 항상 다크다 — IDE들이 라이트
- * 테마에서도 터미널을 어둡게 두는 것과 같은 이유(실터미널 정체성 + 가독성).
+ * 라이트/다크 테마. 기본은 라이트이고, 선택은 localStorage에 남는다.
+ * 터미널 창·코드 블록은 테마와 무관하게 항상 다크다 — IDE들이 라이트 테마에서도
+ * 터미널을 어둡게 두는 것과 같은 이유(실터미널 정체성 + 가독성).
+ * index.html의 인라인 스크립트가 첫 페인트 전에 같은 규칙으로 테마를 먼저 박는다.
  */
 export type Theme = "dark" | "light";
 
@@ -9,9 +10,9 @@ const KEY = "cbt-theme";
 
 export function getTheme(): Theme {
   try {
-    return localStorage.getItem(KEY) === "light" ? "light" : "dark";
+    return localStorage.getItem(KEY) === "dark" ? "dark" : "light";
   } catch {
-    return "dark";
+    return "light";
   }
 }
 
