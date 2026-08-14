@@ -212,14 +212,24 @@ export class SerialChannel {
    * (또는 전체 타임아웃까지) 반복한다. 프롬프트 정규식에 의존하지 않는다.
    * 스냅숏 복원(expectSilentStart)은 시리얼 출력이 전혀 없을 수 있으므로
    * 짧은 유예 후 출력 없이도 probe를 시도한다.
+   *
+   * `keepWaiting`은 타임아웃을 연장할지 묻는 콜백이다. 이미지 다운로드가 아직
+   * 진행 중이면 게스트는 시작조차 못 한 상태이므로 그 시간을 타임아웃에 넣으면
+   * 회선이 느릴수록 부당하게 실패한다 — vmService가 다운로드 진행 여부를 넘긴다.
+   * 덕분에 타임아웃을 "게스트가 살아날 시간"으로만 잡을 수 있어, 복원이 실패한
+   * 경우 콜드 부팅 폴백으로 훨씬 빨리 넘어간다.
    */
   async waitForShell(
     totalTimeoutMs: number,
-    opts: { expectSilentStart?: boolean } = {},
+    opts: { expectSilentStart?: boolean; keepWaiting?: () => boolean } = {},
   ): Promise<boolean> {
     const start = Date.now();
-    while (Date.now() - start < totalTimeoutMs) {
+    let deadline = start + totalTimeoutMs;
+    while (Date.now() < deadline) {
       await sleep(600);
+      if (Date.now() >= deadline - 600 && opts.keepWaiting?.()) {
+        deadline = Date.now() + totalTimeoutMs; // 다운로드가 진행 중이면 시계를 되감는다
+      }
       if (this.lastOutputAt === 0) {
         // 콜드 부팅은 커널 출력이 나올 때까지 대기, 스냅숏 복원은 2초 유예 후 probe
         if (!opts.expectSilentStart || Date.now() - start < 2000) continue;

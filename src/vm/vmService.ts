@@ -180,17 +180,29 @@ class VmInstance {
     this.emulator = emulator;
     if (this.id === "b") muteRelay(emulator); // B의 릴레이는 영구 음소거 (netBridge 참고)
 
+    let downloadedBytes = 0; // 다운로드 진행 감지용 (부팅 타임아웃 연장 판단)
     emulator.add_listener("download-progress", (p) => {
       if (this.emulator !== emulator) return;
       if (!p.lengthComputable || p.total < 512 * 1024) return; // 큰 파일(커널/fs.json/스냅숏)만 표시
+      downloadedBytes += Math.max(0, p.loaded - (this.store.get().download?.loaded ?? 0));
       this.store.set({ download: { fileName: p.file_name, loaded: p.loaded, total: p.total } });
     });
 
     this.grading.attach(emulator);
     this.aux?.attach(emulator);
-    // 스냅숏 복원은 수 초, 콜드 부팅(특히 Alpine 9p 첫 부팅)은 수 분까지 허용
-    const bootTimeoutMs = kind === "legacy" ? 90_000 : withState ? 120_000 : 240_000;
-    const ok = await this.grading.waitForShell(bootTimeoutMs, { expectSilentStart: withState });
+    // 타임아웃은 "게스트가 살아날 시간"만 재고, 다운로드가 진행 중이면 연장한다.
+    // 스냅숏 복원은 정상이면 십수 초면 끝난다 — 여기서 오래 끌수록 복원이 깨졌을 때
+    // 콜드 부팅 폴백이 늦어지므로 짧게 잡는다. 콜드 부팅은 9p라 훨씬 오래 걸린다.
+    const bootTimeoutMs = kind === "legacy" ? 90_000 : withState ? 45_000 : 240_000;
+    let lastSeenBytes = downloadedBytes; // 대기 시작 시점 기준 — 이후 진행분만 연장 근거
+    const ok = await this.grading.waitForShell(bootTimeoutMs, {
+      expectSilentStart: withState,
+      keepWaiting: () => {
+        const advanced = downloadedBytes !== lastSeenBytes;
+        lastSeenBytes = downloadedBytes;
+        return advanced;
+      },
+    });
     if (this.emulator !== emulator) return "superseded"; // 도중에 restart됨
     this.store.set({ download: null });
     if (!ok) {
