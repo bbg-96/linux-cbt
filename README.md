@@ -28,34 +28,45 @@
 시나리오를 읽고 가상 터미널에서 직접 명령어로 해결하면 자동으로 채점된다.
 
 - 터미널은 시뮬레이터가 아니다 — [v86](https://github.com/copy/v86) (x86→WebAssembly 에뮬레이터)이
-  브라우저 안에서 진짜 리눅스를 부팅한다. 사이트별로 게스트가 다르다:
-  **운영 = Alpine 3.21**(9p 루트, OpenRC), **스테이징 = Debian 12**(ext4 디스크, systemd).
+  브라우저 안에서 **Debian 12**(ext4 디스크 루트, systemd 252, 비-PAE 커널 6.1)를 부팅한다.
+  두 사이트 모두 같은 게스트를 쓴다.
 - 가상 네트워크 내장: v86의 fetch 릴레이가 클라이언트 안에서 가상 라우터(192.168.86.1)로 동작해
   DHCP·ARP·ICMP가 실제로 오간다. 서버·백엔드 없음, 정적 호스팅 가능.
 - 부트 스냅숏(`state.bin.zst`)으로 수 초 만에 셸이 뜬다. 진도는 localStorage에 저장.
 
-## 문제 구성 (8 카테고리 · 30문제)
+## 문제 구성 — 서버 점검과 분석
 
-파일과 디렉터리 / 권한 관리 / 텍스트 처리와 파이프(awk 포함) / 파일 검색(find·ripgrep) /
-프로세스 관리 / 압축과 아카이브 / 시스템과 디스크(df·du) / **네트워크**(ip·route·ping·netstat·
-iptables·tcpdump·nmcli·nc)
+운영 작업의 흐름을 따라가는 커리큘럼이다. 현재 카테고리는 `inspect`(서버 점검과 분석)
+하나이고, 앞으로 서비스·스토리지·보안 같은 다음 단계가 붙는다.
 
-이 30문제는 운영 사이트(`src/problems/all.ts`)에만 실린다. 스테이징 사이트는 선별용이라
-기본값이 빈 목록이다(`src/problems/staging.ts`) — 문제가 없는 카테고리는 대시보드와
-사이드바에서 자동으로 숨겨진다.
+1. **Linux 서버의 OS 기본 정보 확인** — 호스트명·배포판·커널·메모리·디스크·
+   파일시스템·가동시간·시간대 (`hostnamectl`·`lsblk`·`df -hT`·`timedatectl`)
+2. **Linux 서버의 네트워크 기본 정보 및 연결 상태 확인** — 인터페이스·주소·경로·
+   DNS·이름해석·ICMP·경로추적·리스닝포트·연결·TCP·HTTP·통계
+   (`ip`·`ss`·`dig`·`ping`·`traceroute -I`·`nc -zv`·`curl`)
 
-네트워크 카테고리에는 두 가지 특수 문제 형태가 있다:
+두 문제 모두 **조회형**이라 채점은 세션 ①의 **셸 이력(history)** 으로 한다 — 결과를
+파일로 모으라는 인위적 요구 없이, 올바른 명령을 실행하면 통과한다. 이력 채점 규칙은
+아래 "문제 작성 규칙" 참고.
 
-- **듀얼 터미널** (`terminals: 2`, net-05): 세션 복제로 같은 VM의 두 번째 셸(ttyS1)을
-  열어 푼다. 세션 ②에 tcpdump 를 켜 두고 세션 ①에서 ping 을 치며 패킷을 실시간
-  관찰하는 식. 시딩이 세션 ②의 셸을 미리 준비해 두므로 복제 즉시 열린다.
-- **양단(2-VM)** (`vms: 2`, net-07/08): 두 번째 v86 인스턴스(Host B)가 첫 진입 시 부팅되어
-  L2 프레임 브리지로 연결된다. A에서 ping → B에서 tcpdump 수신 증명, B의 nc 서버 ← A 클라이언트
-  등 진짜 두 호스트 간 통신을 실습한다. host-a/host-b 각각 세션 복제가 가능하다.
+`src/problems/all.ts`(운영)와 `src/problems/staging.ts`(스테이징)가 각 사이트의 목록이다.
+**새 문제는 스테이징에만 올려 검증하고, 만족스러우면 `all.ts` 에 추가해 승격한다.**
+문제가 없는 카테고리는 대시보드와 사이드바에서 자동으로 숨겨진다.
 
 모든 문제는 `verify.answer`(모범답안)를 갖고 있어 `__cbt.verifyAll()` 로
 "초기상태 채점=불통과 → 모범답안 실행 → 재채점=통과" 사이클을 자동 회귀할 수 있다
 (dev 또는 `?debug` 빌드).
+
+### 이력(history) 채점 규칙
+
+조회 명령은 시스템에 흔적을 남기지 않으므로 실행 이력으로 채점한다. 실제로 밟은 함정 3가지:
+
+1. 패턴의 **모든 리터럴**에 대괄호 트릭을 쓴다 (`hostnam[e]`, `tracerout[e]`) — 검사
+   명령 자체가 같은 셸의 이력에 남아 **자기 자신과 매치**되기 때문이다. 하나라도
+   빠뜨리면 그 검사는 학습자가 아무것도 안 해도 통과한다.
+2. `history -c` 는 setup 의 **마지막 줄**이어야 한다 — setup 이 실행한 명령
+   (`ip link` 등)이 이력에 남으면 정답을 공짜로 주는 셈이다.
+3. 옵션은 여러 글자일 수 있다 (`ip -br addr`) → `(-[0-9a-z]+ )*` 로 써야 놓치지 않는다.
 
 ## 실행
 
@@ -76,19 +87,18 @@ npm test                           # 시리얼 프로토콜 단위 테스트 (vi
 
 | 사이트 | 주소 | 문제 세트 | 배포 |
 |---|---|---|---|
-| 운영 | https://bbg-96.github.io/linux-cbt/ | `src/problems/all.ts` (전체 30문제) | `npm run build && npm run deploy` |
-| 스테이징 | https://bbg-96.github.io/linux-cbt-staging/ | `src/problems/staging.ts` (선별, 현재 0개) | `npm run build:staging && npm run deploy:staging` |
+| 운영 | https://bbg-96.github.io/linux-cbt/ | `src/problems/all.ts` | `npm run build && npm run deploy` |
+| 스테이징 | https://bbg-96.github.io/linux-cbt-staging/ | `src/problems/staging.ts` | `npm run build:staging && npm run deploy:staging` |
 
-- 스테이징에 문제를 넣으려면 `src/problems/staging.ts`의 배열에 추가한다. 기존 문제를
-  import해 담아도 되고(`import { perm01 } from "./data/permissions/perm-01"`), 새로 만든
-  문제 모듈을 넣어도 된다. 배열 순서가 곧 커리큘럼 순서다.
+- **승격 절차**: 새 문제는 `staging.ts` 에만 넣어 스테이징에서 검증하고, 만족스러우면
+  `all.ts` 에도 추가해 운영에 내보낸다. 배열 순서가 곧 커리큘럼 순서다.
 - 빌드 산출물이 섞이지 않도록 스테이징은 `dist-staging`으로 뽑고, 각각 다른 저장소의
   `gh-pages` 브랜치로 force push 한다(`scripts/deploy.mjs`의 타깃 표 참조).
-- 테스트는 빌드 모드와 무관하게 항상 전체 카탈로그(`ALL_PROBLEMS`)를 검증한다.
+- 테스트는 빌드 모드와 무관하게 두 목록(`ALL_PROBLEMS`+`STAGING_PROBLEMS`)을 함께 검증한다.
 
-- 이미지 산출물(`public/vm/alpine/`, 약 70MB)은 **main에 커밋하지 않는다.** `gh-pages`
+- 이미지 산출물(`public/vm/debian/`, 약 220MB)은 **main에 커밋하지 않는다.** `gh-pages`
   브랜치에만 담기므로 소스 히스토리가 바이너리로 부풀지 않는다. 산출물을 새로 만들려면
-  위의 "VM 이미지 빌드" 절차를 따른다.
+  아래 "게스트 이미지" 절차를 따른다.
 - `base: './'` + HashRouter라 `https://<계정>.github.io/linux-cbt/` 같은 하위 경로에서
   그대로 동작한다 (하위 경로 서빙으로 검증 완료).
 - `public/.nojekyll`이 있어야 Jekyll이 1700여 개 파일을 건드리지 않는다.
@@ -98,30 +108,31 @@ npm test                           # 시리얼 프로토콜 단위 테스트 (vi
   스냅숏은 그 파일시스템의 9p inode 배치까지 담고 있어 **둘이 다른 빌드면 게스트가
   조용히 깨진다**(실제로 재배포 직후 modprobe에서 커널 oops로 관측됨). 그래서 두 URL에
   매니페스트의 `?v=<fs.json 해시>`를 붙여 짝을 고정한다(`src/vm/vmConfig.ts`).
-- 첫 방문 시 약 25~30MB를 내려받고(스냅숏+커널+실제 접근 파일), 이후는 캐시된다.
-  GitHub Pages 대역폭 소프트 한도는 월 100GB.
+- 첫 방문 시 약 80MB를 내려받고(스냅숏 49MB + 커널·initrd 30MB + 접근한 디스크 청크),
+  이후는 캐시된다. GitHub Pages 대역폭 소프트 한도는 월 100GB.
 
-## 게스트 이미지 프로필 (alpine / debian)
+## 게스트 이미지 프로필 (debian / alpine)
 
-사이트마다 다른 게스트를 쓴다. 프로필은 빌드 모드로 정해진다
-(`.env.staging` 의 `VITE_IMAGE_PROFILE=debian`, 운영은 값이 없어 alpine).
+기본은 **debian** 이다 — 현재 문제들이 systemd 계열 환경(hostnamectl·timedatectl·
+dnsmasq·nginx)을 전제한다. `VITE_IMAGE_PROFILE=alpine` 으로 예전 9p/busybox 이미지를
+되살릴 수 있고, 그 파이프라인(`image/alpine/`)은 참고·폴백용으로 남겨 두었다.
 
-| | 운영 (alpine) | 스테이징 (debian) |
+| | debian (기본) | alpine (보존) |
 |---|---|---|
-| 배포판 | Alpine 3.21 (busybox·OpenRC) | Debian 12 bookworm (systemd 252) |
-| 커널 | 6.12-virt | 6.1.0-686 (**비-PAE** — v86 검증 경로) |
-| 루트 | 9p (fs.json + 내용해시 파일) | ext4 통짜 디스크, 1MiB 청크 + zstd |
-| 스냅숏 | 21MB | 42MB |
-| 배포 용량 | 80MB | 198MB |
+| 배포판 | Debian 12 bookworm (systemd 252) | Alpine 3.21 (busybox·OpenRC) |
+| 커널 | 6.1.0-686 (**비-PAE** — v86 검증 경로) | 6.12-virt |
+| 루트 | ext4 통짜 디스크, 1MiB 청크 + zstd | 9p (fs.json + 내용해시 파일) |
+| 스냅숏 | 49MB | 21MB |
+| 배포 용량 | 222MB | 80MB |
 
-Debian 프로필을 둔 이유는 `hostnamectl`·`timedatectl` 이 systemd 데몬에 D-Bus 로
-질의하는 클라이언트라 musl 기반 Alpine 에는 존재할 수 없기 때문이다(`lsblk` 는
-util-linux 라 Alpine 에도 넣을 수 있지만 같은 트랙으로 묶었다).
+Debian 으로 옮긴 이유는 `hostnamectl`·`timedatectl` 이 systemd 데몬에 D-Bus 로
+질의하는 클라이언트라 musl 기반 Alpine 에는 **존재할 수 없기** 때문이다. 교과서 명령을
+그대로 가르치려면 systemd 배포판이어야 한다.
 
 루트를 9p 가 아니라 **블록 디바이스**로 만든 것도 의도적이다 — 배포 환경에서 9p 커널
 경로(`p9_fcall_init→__kmalloc`)가 무너지는 문제를 겪었는데, ext4 디스크는 그 코드를
 아예 타지 않는다. v86 의 `use_parts` 로 **접근한 1MiB 청크만** 내려받으므로 디스크가
-544MB 여도 첫 로딩은 스냅숏(42MB) 중심이다.
+620MB 여도 첫 로딩은 스냅숏(49MB) 중심이다.
 
 주의: 청크 파일명은 v86 이 URL 에서 유도한다 — `.../<partsDir>/rootfs.ext4.zst` 를 주면
 `rootfs-<start>-<end>.ext4.zst` 를 찾는다. 이름이 어긋나면 404 만 나므로

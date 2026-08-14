@@ -27,8 +27,9 @@ export interface VmState {
 }
 
 /**
- * 사이트별 게스트 이미지 프로필. 스테이징만 debian(systemd)을 쓰고 운영은
- * 검증된 alpine 을 유지한다 (.env.staging 의 VITE_IMAGE_PROFILE).
+ * 게스트 이미지 프로필. 기본은 debian(systemd) — 현재 문제들이 hostnamectl·
+ * timedatectl·dnsmasq·nginx 처럼 systemd 계열 환경을 전제한다.
+ * `VITE_IMAGE_PROFILE=alpine` 으로 예전 9p/busybox 이미지를 되살릴 수 있다.
  */
 function detectImageKind(): ImageKind {
   try {
@@ -36,7 +37,7 @@ function detectImageKind(): ImageKind {
   } catch {
     // SSR/테스트 환경 방어
   }
-  return import.meta.env.VITE_IMAGE_PROFILE === "debian" ? "debian" : "alpine";
+  return import.meta.env.VITE_IMAGE_PROFILE === "alpine" ? "alpine" : "debian";
 }
 
 /** 프로필별 이미지 디렉터리 (매니페스트 위치이자 산출물 루트) */
